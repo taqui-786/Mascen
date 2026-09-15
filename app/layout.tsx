@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Moscot",
+  title: "Mascen",
   description: "Design a cursor-aware mascot from a prompt or a photo.",
 };
 

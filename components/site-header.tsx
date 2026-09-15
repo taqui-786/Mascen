@@ -13,7 +13,7 @@ export function SiteHeader() {
             aria-hidden
           />
           <span className="font-heading text-lg font-semibold tracking-tight">
-            Moscot
+            Mascen
           </span>
         </a>
         <nav className="flex items-center gap-1">

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useRef, useState } from "react"
 import {
   Cancel01Icon,
   ImageAdd01Icon,
@@ -10,7 +10,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react"
 
 import { ExampleGallery } from "@/components/example-gallery"
-import { Mascot } from "@/components/mascot"
+import { PreviewStage } from "@/components/preview-stage"
 import { Button } from "@/components/ui/button"
 import {
   Empty,
@@ -298,30 +298,33 @@ export function Editor() {
         </form>
       </section>
 
-      <section className="flex min-h-0 flex-col bg-muted/40">
-        <div className="flex h-[min(38vh,20rem)] shrink-0 items-center justify-center">
+      <section className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-muted/20">
+        <div className="shrink-0 bg-background">
           {previewReady ? (
             <PreviewStage
               label={label || picked.title}
+              slug={picked.id}
               directions={picked.directions}
               reactions={picked.reactions}
             />
           ) : (
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <HugeiconsIcon icon={ImageAdd01Icon} />
-                </EmptyMedia>
-                <EmptyTitle>Nothing to preview</EmptyTitle>
-                <EmptyDescription>
-                  Write a prompt and generate. The live mascot shows up here.
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
+            <div className="flex h-64 items-center justify-center p-6">
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <HugeiconsIcon icon={ImageAdd01Icon} />
+                  </EmptyMedia>
+                  <EmptyTitle>Nothing to preview</EmptyTitle>
+                  <EmptyDescription>
+                    Write a prompt and generate. The live mascot shows up here.
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            </div>
           )}
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto border-t bg-background px-4 py-5 md:px-6">
+        <div className="bg-background px-4 py-6 md:px-6">
           <ExampleGallery
             picked={picked.id}
             pickedStyle={pickedStyle}
@@ -331,53 +334,8 @@ export function Editor() {
           />
         </div>
       </section>
+
     </div>
   )
 }
 
-function PreviewStage({
-  label,
-  directions,
-  reactions,
-}: {
-  label: string
-  directions: string
-  reactions: string
-}) {
-  const frameRef = useRef<HTMLDivElement>(null)
-  const [size, setSize] = useState(280)
-
-  useEffect(() => {
-    const frame = frameRef.current
-    if (!frame) return
-
-    const fit = () => {
-      const width = frame.clientWidth
-      const height = frame.clientHeight
-      const next = Math.floor(Math.min(width - 32, height - 64) * 0.72)
-      setSize(Math.max(200, Math.min(next, 320)))
-    }
-
-    fit()
-    const observer = new ResizeObserver(fit)
-    observer.observe(frame)
-    return () => observer.disconnect()
-  }, [])
-
-  return (
-    <div
-      ref={frameRef}
-      className="flex h-full w-full flex-col items-center justify-center gap-3 px-4 py-4"
-    >
-      <Mascot
-        key={directions}
-        size={size}
-        label={label}
-        directions={directions}
-        reactions={reactions}
-        expressionOnLoad
-      />
-      <p className="font-heading text-lg font-semibold tracking-tight">{label}</p>
-    </div>
-  )
-}

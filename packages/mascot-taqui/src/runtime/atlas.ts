@@ -59,4 +59,12 @@ export const LOAD_GREETING: readonly Expression[] = [
   'bashful',
 ]
 
-export const BOOP_PAYOFFS: readonly Expression[] = ['heart', 'sparkle', 'delighted']
+export const BOOP_PAYOFFS: readonly Expression[] = [
+  'heart',
+  'sparkle',
+  'wink',
+  'surprised',
+  'bashful',
+  'delighted',
+  'sleepy',
+]

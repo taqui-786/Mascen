@@ -31,6 +31,7 @@ export type MascotHandle = {
   destroy(): void
   boop(): void
   glance(look: Look): void
+  react(expression: Expression, holdMs?: number): void
   setSize(px: number): void
   pause(): void
   resume(): void
@@ -85,7 +86,8 @@ export function createMascot(host: HTMLElement, options: MascotOptions): MascotH
   let raf = 0
   let idleTimer = 0
   const sequenceTimers: number[] = []
-  let boopCount = 0
+  let boopCycle = 0
+  let rapidClicks = 0
   let boopAt = 0
 
   const squash = document.createElement('span')
@@ -234,14 +236,15 @@ export function createMascot(host: HTMLElement, options: MascotOptions): MascotH
     if (disabled || paused) return
     options.onBoop?.()
     const now = env.now()
-    boopCount = now - boopAt < DIZZY_WINDOW_MS ? boopCount + 1 : 1
+    rapidClicks = now - boopAt < DIZZY_WINDOW_MS ? rapidClicks + 1 : 1
     boopAt = now
 
-    if (boopCount >= DIZZY_AFTER) {
-      boopCount = 0
+    if (rapidClicks >= DIZZY_AFTER) {
+      rapidClicks = 0
       playSequence([{ expression: 'dizzy', ms: DIZZY_HOLD_MS }])
     } else {
-      const payoff = BOOP_PAYOFFS[(boopCount - 1) % BOOP_PAYOFFS.length]!
+      const payoff = BOOP_PAYOFFS[boopCycle % BOOP_PAYOFFS.length]!
+      boopCycle++
       playSequence([
         { expression: 'blink', ms: BOOP_BLINK_MS },
         { expression: payoff, ms: BOOP_PAYOFF_MS },
@@ -396,6 +399,11 @@ export function createMascot(host: HTMLElement, options: MascotOptions): MascotH
     requestAim()
   }
 
+  function react(expression: Expression, holdMs = 800) {
+    if (disabled || paused) return
+    playSequence([{ expression, ms: holdMs }])
+  }
+
   bind()
   void preload().then(() => {
     if (destroyed || disabled) return
@@ -403,5 +411,5 @@ export function createMascot(host: HTMLElement, options: MascotOptions): MascotH
     else scheduleIdle()
   })
 
-  return { destroy, boop, glance, setSize, pause, resume, update }
+  return { destroy, boop, glance, react, setSize, pause, resume, update }
 }

@@ -122,6 +122,22 @@ describe('createMascot', () => {
     expect(expressions.at(-1)).toBe('dizzy')
   })
 
+  it('cycles through all payoff expressions on successive boops', () => {
+    const clock = createClock()
+    const { handle, expressions } = mount(clock.env)
+    const payoffs = ['heart', 'sparkle', 'wink', 'surprised', 'bashful', 'delighted', 'sleepy']
+
+    for (const expected of payoffs) {
+      handle.boop()
+      clock.flush(110)
+      expect(expressions.at(-1)).toBe(expected)
+      clock.flush(420)
+      expect(expressions.at(-1)).toBeNull()
+      // advance clock past dizzy window so they are counted as normal distinct clicks
+      clock.flush(2000)
+    }
+  })
+
   it('scales look tracking off a 3×3 pad', () => {
     const clock = createClock()
     const looks: string[] = []
