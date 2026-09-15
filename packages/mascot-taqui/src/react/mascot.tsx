@@ -32,7 +32,7 @@ export function Mascot({
   className,
   style,
   expressionOnLoad = false,
-  idleBlink = true,
+  idleBlink = false,
   followPointer = true,
   disabled = false,
   onBoop,

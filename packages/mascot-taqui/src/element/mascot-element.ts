@@ -17,7 +17,7 @@ function readOptions(el: MascotTaqui) {
     size: sizeAttr ? Number(sizeAttr) || 140 : 140,
     label: el.getAttribute('label') ?? 'Taqui',
     expressionOnLoad: boolAttr(el.getAttribute('expression-on-load'), false),
-    idleBlink: boolAttr(el.getAttribute('idle-blink'), true),
+    idleBlink: boolAttr(el.getAttribute('idle-blink'), false),
     followPointer: boolAttr(el.getAttribute('follow-pointer'), true),
     disabled: boolAttr(el.getAttribute('disabled'), false),
   }

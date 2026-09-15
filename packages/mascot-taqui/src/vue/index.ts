@@ -11,7 +11,7 @@ export const Mascot = defineComponent({
     label: { type: String, default: 'Taqui' },
     className: { type: String, default: '' },
     expressionOnLoad: { type: Boolean, default: false },
-    idleBlink: { type: Boolean, default: true },
+    idleBlink: { type: Boolean, default: false },
     followPointer: { type: Boolean, default: true },
     disabled: { type: Boolean, default: false },
   },

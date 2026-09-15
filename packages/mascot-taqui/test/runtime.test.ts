@@ -152,4 +152,47 @@ describe('createMascot', () => {
     handle.glance('up-left')
     expect(looks).toEqual(['up-left'])
   })
+
+  it('does not blink periodically by default', () => {
+    const clock = createClock()
+    const { expressions } = mount(clock.env)
+    clock.flush(10000)
+    expect(expressions).toHaveLength(0)
+  })
+
+  it('only blinks on idle when looking center, and avoids interrupting directed looks', async () => {
+    const clock = createClock()
+    const { handle, expressions } = mount(clock.env, { idleBlink: true })
+    clock.flush(150)
+    await new Promise((r) => setTimeout(r, 10))
+    handle.glance('up-right')
+    // At up-right, it should not blink even after 5s
+    clock.flush(5000)
+    expect(expressions).not.toContain('blink')
+
+    // Once glanced back to center, idle blink triggers
+    handle.glance('center')
+    clock.flush(5000)
+    expect(expressions).toContain('blink')
+  })
+
+  it('resets idle timer when pointer moves', async () => {
+    const clock = createClock()
+    const { host, expressions } = mount(clock.env, { idleBlink: true })
+    host.getBoundingClientRect = () =>
+      ({ left: 0, top: 0, width: 100, height: 100, right: 100, bottom: 100, x: 0, y: 0, toJSON() {} })
+    clock.flush(150)
+    await new Promise((r) => setTimeout(r, 10))
+    // Active mouse moves in center dead-zone every 2s
+    clock.flush(2000)
+    window.dispatchEvent(new PointerEvent('pointermove', { clientX: 50, clientY: 50 }))
+    clock.flush(2000)
+    window.dispatchEvent(new PointerEvent('pointermove', { clientX: 50, clientY: 50 }))
+    clock.flush(2000)
+    // No blink should have fired while actively moving within the idle window
+    expect(expressions).not.toContain('blink')
+    // After resting for 5s at center, it blinks
+    clock.flush(5000)
+    expect(expressions).toContain('blink')
+  })
 })

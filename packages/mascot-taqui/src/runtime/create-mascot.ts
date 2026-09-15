@@ -72,7 +72,7 @@ export function createMascot(host: HTMLElement, options: MascotOptions): MascotH
   let directions = options.directions
   let reactions = options.reactions
   let expressionOnLoad = options.expressionOnLoad ?? false
-  let idleBlink = options.idleBlink ?? true
+  let idleBlink = options.idleBlink ?? false
   let followPointer = options.followPointer ?? true
   let disabled = options.disabled ?? false
 
@@ -216,7 +216,7 @@ export function createMascot(host: HTMLElement, options: MascotOptions): MascotH
     if (!idleBlink || disabled || paused || !visible || reduceMotion()) return
     const delay = IDLE_MIN_MS + env.random() * IDLE_SPAN_MS
     idleTimer = env.setTimeout(() => {
-      if (expression !== null || disabled || paused) {
+      if (expression !== null || disabled || paused || look !== 'center') {
         scheduleIdle()
         return
       }
@@ -261,10 +261,12 @@ export function createMascot(host: HTMLElement, options: MascotOptions): MascotH
 
   function onPointerMove(event: PointerEvent) {
     pointer = { x: event.clientX, y: event.clientY }
+    scheduleIdle()
     requestAim()
   }
 
   function onScroll() {
+    scheduleIdle()
     requestAim()
   }
 
@@ -275,6 +277,7 @@ export function createMascot(host: HTMLElement, options: MascotOptions): MascotH
 
   function onKeyDown(event: KeyboardEvent) {
     if (disabled) return
+    scheduleIdle()
     const next = lookFromKey(event.key)
     if (next) {
       event.preventDefault()
@@ -328,13 +331,21 @@ export function createMascot(host: HTMLElement, options: MascotOptions): MascotH
 
   function decodeSheet(src: string) {
     return new Promise<void>((resolve) => {
+      let settled = false
+      const done = () => {
+        if (settled) return
+        settled = true
+        env.clearTimeout(timer)
+        resolve()
+      }
+      const timer = env.setTimeout(done, 100)
       const image = new Image()
       image.onload = () => {
         const decoded = image.decode?.()
-        if (decoded) decoded.then(() => resolve()).catch(() => resolve())
-        else resolve()
+        if (decoded) decoded.then(done).catch(done)
+        else done()
       }
-      image.onerror = () => resolve()
+      image.onerror = done
       image.src = src
     })
   }
