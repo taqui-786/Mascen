@@ -1,0 +1,92 @@
+{
+  "name": "mascot-taqui",
+  "version": "0.1.0",
+  "description": "Taqui, a cursor-aware mascot. One runtime, React and web-component adapters, and a CLI that drops it into any web app.",
+  "license": "MIT",
+  "author": "Md Taqui Imam",
+  "type": "module",
+  "sideEffects": [
+    "./dist/element/index.js"
+  ],
+  "bin": {
+    "mascot-taqui": "./dist/cli/index.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/element/index.d.ts",
+      "import": "./dist/element/index.js",
+      "default": "./dist/element/index.js"
+    },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react/index.js",
+      "default": "./dist/react/index.js"
+    },
+    "./vue": {
+      "types": "./dist/vue/index.d.ts",
+      "import": "./dist/vue/index.js",
+      "default": "./dist/vue/index.js"
+    },
+    "./runtime": {
+      "types": "./dist/runtime/index.d.ts",
+      "import": "./dist/runtime/index.js",
+      "default": "./dist/runtime/index.js"
+    },
+    "./assets/*": "./assets/*"
+  },
+  "types": "./dist/element/index.d.ts",
+  "files": [
+    "dist",
+    "assets",
+    "templates",
+    "README.md",
+    "ATLAS.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsup",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepack": "npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "vue": ">=3"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "@types/react": "^19.2.2",
+    "happy-dom": "^18.0.1",
+    "react": "^19.2.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4",
+    "vue": "^3.5.21"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "mascot",
+    "taqui",
+    "sprite",
+    "web-component",
+    "react",
+    "cursor"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "allowScripts": {
+    "esbuild@0.27.7": true
+  }
+}

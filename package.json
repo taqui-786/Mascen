@@ -5,16 +5,21 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "prebuild": "pnpm --filter mascot-taqui build",
+    "build:package": "pnpm --filter mascot-taqui build",
     "start": "next start",
     "lint": "eslint"
   },
+  "workspaces": [
+    "packages/*"
+  ],
   "dependencies": {
     "@base-ui/react": "^1.8.0",
     "@hugeicons/core-free-icons": "^4.3.3",
     "@hugeicons/react": "^1.1.10",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.3.0",
-    "mascot-taqui": "file:../mascot-taqui",
+    "mascot-taqui": "workspace:*",
     "next": "16.3.5",
     "react": "19.2.8",
     "react-dom": "19.2.8",
