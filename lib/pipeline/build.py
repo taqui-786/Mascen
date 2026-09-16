@@ -72,8 +72,71 @@ def check_and_fix_mirror(im):
     return im
 
 
+def extract_alpha(im):
+    """Ensure the image has a clean transparent alpha background.
+    If the image lacks native transparency (all alpha==255 or mode RGB),
+    detects the solid (e.g. pure white #FFFFFF) or checkerboard background
+    from perimeter border pixels and flood-fills transparency with anti-aliasing.
+    """
+    rgba = im.convert('RGBA')
+    a = np.array(rgba)
+    
+    # If image already has genuine transparency (> 4% of pixels with alpha < 20), keep as-is
+    if (a[..., 3] < 20).mean() > 0.04:
+        return rgba
+
+    rgb = a[..., :3]
+    rgb_f = rgb.astype(np.float32)
+    H, W, _ = rgb.shape
+
+    # Sample border perimeter
+    border = np.zeros((H, W), dtype=bool)
+    border[0, :] = border[-1, :] = border[:, 0] = border[:, -1] = True
+
+    # 1. Check solid background (corners similar in color, e.g. solid white #FFFFFF)
+    corners = np.array([rgb[0, 0], rgb[0, -1], rgb[-1, 0], rgb[-1, -1]], dtype=np.float32)
+    corner_std = corners.std(axis=0).mean()
+
+    if corner_std < 20:
+        bg_ref = np.median(corners, axis=0)
+        dist = np.sqrt(np.sum((rgb_f - bg_ref) ** 2, axis=-1))
+        # Tolerance of 45 covers white, off-white, and minor compression artifacts
+        is_bg = dist < 45.0
+    else:
+        # 2. Check neutral grey/checkerboard background (R~=G~=B with dark/mid luminance)
+        channel_diff = np.max(rgb_f, axis=-1) - np.min(rgb_f, axis=-1)
+        is_neutral = channel_diff < 22.0
+        is_bg = is_neutral & (rgb_f.mean(axis=-1) < 195.0)
+
+    # Flood-fill only components touching image boundaries
+    labels, count = ndimage.label(is_bg)
+    if count == 0:
+        return rgba
+
+    touching_border = np.unique(labels[border])
+    touching_border = touching_border[touching_border > 0]
+    if len(touching_border) == 0:
+        return rgba
+
+    bg_mask = np.isin(labels, touching_border)
+
+    # Soft edge feathering / anti-aliasing
+    body = ~bg_mask
+    if body.any():
+        body_dist = ndimage.distance_transform_edt(body)
+        bg_dist = ndimage.distance_transform_edt(bg_mask)
+        alpha = np.clip((body_dist - bg_dist + 1.2) / 2.0, 0.0, 1.0) * 255.0
+        alpha = np.where(bg_mask & (body_dist == 0), 0, alpha)
+        alpha = np.where(body & (bg_dist == 0), 255, alpha)
+    else:
+        alpha = np.where(bg_mask, 0, 255)
+
+    a[..., 3] = alpha.astype(np.uint8)
+    return Image.fromarray(a, 'RGBA')
+
+
 def tiles(path, is_directions=False):
-    sheet = Image.open(path).convert('RGBA')
+    sheet = extract_alpha(Image.open(path))
     if is_directions:
         sheet = check_and_fix_mirror(sheet)
     w = sheet.size[0] // 3

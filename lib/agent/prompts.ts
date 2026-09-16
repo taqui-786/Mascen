@@ -18,7 +18,7 @@ export const STYLES: Record<string, string> = {
     "16-bit pixel art. Chunky visible square pixels on a strict grid, a small limited palette, hard-edged dithering for shading, a crisp one-pixel dark outline, and absolutely no anti-aliasing or soft edges anywhere. Readable and characterful at a small size, like a Super Nintendo sprite.",
 }
 
-const RULES = `LAYOUT: 3 columns by 3 rows, evenly spaced, fully transparent background. Each drawing is head plus upper shoulders, centred in its cell, same character and same head size in all nine cells.
+const RULES = `LAYOUT: 3 columns by 3 rows, evenly spaced, pure solid flat white background (#FFFFFF). Each drawing is head plus upper shoulders, centred in its cell, same character and same head size in all nine cells.
 
 FRAMING: a PORTRAIT BUST. Head, neck and shoulders only. NO arms, NO hands, NO legs, NO lower body. The shoulders are the lowest thing in the cell.
 
@@ -39,7 +39,7 @@ const EXPRESSIONS = `1. Eyes closed as two upward curved arcs. No symbol.
 9. Eyes closed arcs, mouth wide open in a big happy grin.`
 
 const TAIL =
-  "No text, no labels, no borders, no drop shadows, no background colour. Square image, at least 1024x1024, PNG with a real transparent alpha background."
+  "SOLID BACKGROUND: Must be isolated on a pure flat solid white background (#FFFFFF) with high contrast against the character silhouette. Absolutely NO checkerboard patterns, NO simulated transparency textures, NO gradients, NO drop shadows, NO border lines, no text. Square image, at least 1024x1024 PNG."
 
 /**
  * Pre-sanitizes user input to remove traits that break sprite alignment.
@@ -54,6 +54,14 @@ export function sanitizePrompt(prompt: string): string {
     cleaned = cleaned.replace(
       /\b(long hair|loose hair|flowing hair|hair down)\b/gi,
       "hair tied back in a neat bun or under a hat"
+    )
+  }
+
+  // Avoid held props or wide accessories that break head-and-shoulders framing
+  if (/\b(holding a staff|holding a mug|holding an instrument|holding a sword|holding a book|holding weapons?)\b/i.test(cleaned)) {
+    cleaned = cleaned.replace(
+      /\b(holding a staff|holding a mug|holding an instrument|holding a sword|holding a book|holding weapons?)\b/gi,
+      "head and upper shoulders portrait only"
     )
   }
 
@@ -85,7 +93,7 @@ export function buildReactionsPrompt(describe: string, style = "colour"): string
       ? `Keep the ${style} rendering style of the reference image exactly. `
       : ""
 
-  return `The attached reference image is a 3x3 head-direction sprite sheet. Produce the MATCHING EXPRESSIONS sheet for that same character. The character is ${safeDescribe}. ${look}Copy the character from the attached image exactly: the same colours, the same markings, the same fur or surface detail, the same line weight. Every marking visible in the attached sheet must appear here too. Do not restyle, simplify or redraw it.
+  return `The attached reference image is a 3x3 head-direction sprite sheet. Produce the MATCHING EXPRESSIONS sheet for that same character. The character is ${safeDescribe}. ${look}Copy the character from the attached image exactly: the same colours, the same markings, the same fur or surface detail, the same line weight. Every marking visible in the attached sheet must appear here too. Do not restyle, simplify or redraw it. CRITICAL: keep the exact same pure flat solid white background (#FFFFFF) with NO checkerboard or textures.
 
 NOT head directions. The character faces STRAIGHT AT THE VIEWER in all nine cells, head perfectly straight. The only thing that changes between cells is the FACE, plus one small floating symbol in three of them.
 

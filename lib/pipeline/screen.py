@@ -9,12 +9,20 @@ import numpy as np
 from PIL import Image
 from scipy import ndimage
 
+sys.path.insert(0, os.path.dirname(__file__))
+from build import extract_alpha
+
 def screen_sheet(path):
     im = Image.open(path)
     fmt = im.format
-    a = np.array(im.convert('RGBA'))
+    raw_a = np.array(im.convert('RGBA'))
+    native_alpha_ok = fmt == 'PNG' and bool((raw_a[..., 3] < 10).mean() > 0.05)
+    
+    # Extract alpha if native alpha is missing (e.g. solid white backdrop)
+    matted = extract_alpha(im)
+    a = np.array(matted)
     W = a.shape[0] // 3
-    alpha_ok = fmt == 'PNG' and bool((a[..., 3] < 10).mean() > 0.05)
+    alpha_ok = native_alpha_ok or bool((a[..., 3] < 10).mean() > 0.05)
     
     widths = []
     for i in range(9):

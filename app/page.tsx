@@ -1,11 +1,9 @@
 import { Editor } from "@/components/editor"
-import { SiteHeader } from "@/components/site-header"
 
 export default function Home() {
   return (
-    <div className="flex min-h-[100dvh] flex-col">
-      <SiteHeader />
-      <main className="flex-1">
+    <div className="flex min-h-[100dvh] flex-col bg-background text-foreground">
+      <main className="flex-1 flex flex-col w-full">
         <Editor />
       </main>
     </div>

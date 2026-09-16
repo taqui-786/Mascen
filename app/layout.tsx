@@ -35,7 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         oxaniumHeading.variable,
       )}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col overflow-x-hidden">
         <Providers>{children}</Providers>
       </body>
     </html>
