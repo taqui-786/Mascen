@@ -5,8 +5,6 @@ import {
   AiSparklesIcon,
   ArrowRight01Icon,
   Cancel01Icon,
-  CodeIcon,
-  Download01Icon,
   ImageAdd01Icon,
   ImageUpload01Icon,
   PaintBoardIcon,
@@ -193,20 +191,6 @@ export function Editor() {
       type: "info",
       title: "Inspiration Applied",
       description: "Sample character description loaded.",
-    })
-  }
-
-  function downloadAsset(url: string, filename: string) {
-    const a = document.createElement("a")
-    a.href = url
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    toast.add({
-      type: "success",
-      title: "Download Started",
-      description: `Saving ${filename}`,
     })
   }
 
@@ -623,60 +607,6 @@ export function Editor() {
                 </div>
               </form>
             </section>
-
-            {/* QUICK ACTIONS DOCK: 1-CLICK ACTIONS & SHORTCUTS */}
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/60 bg-muted/10 px-4 py-3 text-xs">
-              <div className="flex items-center gap-2 font-medium text-foreground">
-                <span className="font-heading font-semibold">{picked.title}</span>
-                <span className="text-muted-foreground">Active in Studio</span>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleStudioModeChange("logo")}
-                  className="h-7 gap-1.5 rounded-lg text-xs"
-                >
-                  <HugeiconsIcon icon={PaintBoardIcon} className="size-3 text-amber-500" />
-                  <span>Create Logo from {picked.title}</span>
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={scrollToExport}
-                  className="h-7 gap-1.5 rounded-lg text-xs"
-                >
-                  <HugeiconsIcon icon={CodeIcon} className="size-3 text-primary" />
-                  <span>Developer Integration</span>
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => downloadAsset(picked.directions, `${picked.id}-directions.webp`)}
-                  className="h-7 gap-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground"
-                >
-                  <HugeiconsIcon icon={Download01Icon} className="size-3" />
-                  <span>Directions WebP</span>
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => downloadAsset(picked.reactions, `${picked.id}-reactions.webp`)}
-                  className="h-7 gap-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground"
-                >
-                  <HugeiconsIcon icon={Download01Icon} className="size-3" />
-                  <span>Reactions WebP</span>
-                </Button>
-              </div>
-            </div>
 
             {/* ALREADY DRAWN MASCOTS & ARTISTIC STYLES (TRANSPARENT FLOATING CARDS) */}
             <ExampleGallery

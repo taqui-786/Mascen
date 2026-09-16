@@ -17,7 +17,9 @@ export type MascotProps = {
   label?: string
   className?: string
   style?: CSSProperties
-  expressionOnLoad?: boolean
+  goToSleep?: boolean
+  reaction?: Expression | null
+  look?: Look
   idleBlink?: boolean
   followPointer?: boolean
   disabled?: boolean
@@ -31,11 +33,13 @@ export const Mascot = forwardRef<MascotHandle, MascotProps>(function Mascot(
   {
     directions = DEFAULT_DIRECTIONS,
     reactions = DEFAULT_REACTIONS,
-    size = 200,
+    size = 240,
     label = 'Taqui',
     className,
     style,
-    expressionOnLoad = false,
+    goToSleep = false,
+    reaction = null,
+    look,
     idleBlink = false,
     followPointer = true,
     disabled = false,
@@ -55,8 +59,10 @@ export const Mascot = forwardRef<MascotHandle, MascotProps>(function Mascot(
     () => ({
       destroy: () => handleRef.current?.destroy(),
       boop: () => handleRef.current?.boop(),
-      glance: (look: Look) => handleRef.current?.glance(look),
+      glance: (l: Look) => handleRef.current?.glance(l),
       react: (expr: Expression, holdMs?: number) => handleRef.current?.react(expr, holdMs),
+      sleep: () => handleRef.current?.sleep(),
+      wake: () => handleRef.current?.wake(),
       setSize: (px: number) => handleRef.current?.setSize(px),
       pause: () => handleRef.current?.pause(),
       resume: () => handleRef.current?.resume(),
@@ -73,12 +79,14 @@ export const Mascot = forwardRef<MascotHandle, MascotProps>(function Mascot(
       reactions,
       size,
       label,
-      expressionOnLoad,
+      goToSleep,
+      reaction,
+      look,
       idleBlink,
       followPointer,
       disabled,
       onBoop: () => callbacks.current.onBoop?.(),
-      onLook: (look) => callbacks.current.onLook?.(look),
+      onLook: (l) => callbacks.current.onLook?.(l),
       onExpression: (value) => callbacks.current.onExpression?.(value),
     })
     handleRef.current = handle
@@ -86,7 +94,7 @@ export const Mascot = forwardRef<MascotHandle, MascotProps>(function Mascot(
       handle.destroy()
       handleRef.current = null
     }
-  }, [directions, reactions, size, label, expressionOnLoad, idleBlink, followPointer, disabled])
+  }, [directions, reactions, size, label, goToSleep, reaction, look, idleBlink, followPointer, disabled])
 
   return (
     <button

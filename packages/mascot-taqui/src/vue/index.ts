@@ -1,4 +1,4 @@
-import { defineComponent, h, onMounted, onBeforeUnmount, ref, watch } from 'vue'
+import { defineComponent, h, onMounted, onBeforeUnmount, ref, watch, type PropType } from 'vue'
 import { createMascot, type MascotHandle } from '../runtime/create-mascot'
 import type { Expression, Look } from '../runtime/atlas'
 
@@ -7,10 +7,12 @@ export const Mascot = defineComponent({
   props: {
     directions: { type: String, default: '/mascots/taqui-directions.webp' },
     reactions: { type: String, default: '/mascots/taqui-reactions.webp' },
-    size: { type: Number, default: 140 },
+    size: { type: Number, default: 240 },
     label: { type: String, default: 'Taqui' },
     className: { type: String, default: '' },
-    expressionOnLoad: { type: Boolean, default: false },
+    goToSleep: { type: Boolean, default: false },
+    reaction: { type: String as PropType<Expression | null>, default: null },
+    look: { type: String as PropType<Look>, default: undefined },
     idleBlink: { type: Boolean, default: false },
     followPointer: { type: Boolean, default: true },
     disabled: { type: Boolean, default: false },
@@ -32,7 +34,9 @@ export const Mascot = defineComponent({
         reactions: props.reactions,
         size: props.size,
         label: props.label,
-        expressionOnLoad: props.expressionOnLoad,
+        goToSleep: props.goToSleep,
+        reaction: props.reaction,
+        look: props.look,
         idleBlink: props.idleBlink,
         followPointer: props.followPointer,
         disabled: props.disabled,
@@ -50,7 +54,9 @@ export const Mascot = defineComponent({
         props.reactions,
         props.size,
         props.label,
-        props.expressionOnLoad,
+        props.goToSleep,
+        props.reaction,
+        props.look,
         props.idleBlink,
         props.followPointer,
         props.disabled,
@@ -61,7 +67,9 @@ export const Mascot = defineComponent({
           reactions: props.reactions,
           size: props.size,
           label: props.label,
-          expressionOnLoad: props.expressionOnLoad,
+          goToSleep: props.goToSleep,
+          reaction: props.reaction,
+          look: props.look,
           idleBlink: props.idleBlink,
           followPointer: props.followPointer,
           disabled: props.disabled,

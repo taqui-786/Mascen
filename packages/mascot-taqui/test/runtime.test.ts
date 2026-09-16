@@ -75,7 +75,6 @@ describe('createMascot', () => {
       reactions: '/r.webp',
       size: 100,
       idleBlink: false,
-      expressionOnLoad: false,
       env,
       onExpression: (value) => expressions.push(value),
       ...extra,
@@ -210,5 +209,26 @@ describe('createMascot', () => {
     // After resting for 5s at center, it blinks
     clock.flush(5000)
     expect(expressions).toContain('blink')
+  })
+
+  it('goes to sleep and shows sleepy reaction when goToSleep is true', () => {
+    const clock = createClock()
+    const { host, handle, expressions } = mount(clock.env, { goToSleep: true })
+    const { look, expr } = layers(host)
+    expect(expr.style.opacity).toBe('1')
+    expect(look.style.opacity).toBe('0')
+    expect(expr.style.backgroundPosition).toBe('0% 100%')
+    expect(expressions).toContain('sleepy')
+
+    // wake up
+    handle.wake()
+    expect(expr.style.opacity).toBe('0')
+    expect(look.style.opacity).toBe('1')
+
+    // put back to sleep
+    handle.sleep()
+    expect(expr.style.opacity).toBe('1')
+    expect(look.style.opacity).toBe('0')
+    expect(expr.style.backgroundPosition).toBe('0% 100%')
   })
 })

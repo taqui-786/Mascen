@@ -112,7 +112,8 @@ export function PreviewStage({
   // Interactive controls
   const [followPointer, setFollowPointer] = useState(true)
   const [idleBlink, setIdleBlink] = useState(false)
-  const [size, setSize] = useState(200)
+  const [goToSleep, setGoToSleep] = useState(false)
+  const [size, setSize] = useState(240)
   const [currentLook, setCurrentLook] = useState<string>("center")
   const [activeReactionId, setActiveReactionId] = useState<string | null>(null)
 
@@ -132,7 +133,28 @@ export function PreviewStage({
   return (
     <div className="grid grid-cols-1 divide-y divide-border lg:grid-cols-[minmax(0,1fr)_320px] lg:divide-x lg:divide-y-0">
       {/* 1. LEFT/CENTER: Interactive Mascot Viewport or Generation Chamber */}
-      <div className="relative flex min-h-[360px] flex-col justify-between p-4 sm:p-6 bg-muted/15 transition-colors duration-200">
+      <div className="relative flex min-h-[400px] flex-col justify-between p-4 sm:p-6 bg-muted/15 transition-colors duration-200">
+        {/* Viewport Header: Mascot Name & Status */}
+        <div className="z-10 flex items-center justify-between border-b border-border/40 pb-2.5">
+          <div className="flex items-center gap-2">
+            <span className="font-heading text-sm font-semibold tracking-tight text-foreground">
+              {label}
+            </span>
+            <span className="text-[10px] font-mono text-muted-foreground">
+              · Interactive Stage
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground">
+            <span
+              className={cn(
+                "size-1.5 rounded-full transition-colors",
+                goToSleep ? "bg-amber-400 animate-pulse" : "bg-emerald-500"
+              )}
+            />
+            <span>{goToSleep ? "Sleeping" : `${size}px`}</span>
+          </div>
+        </div>
+
         {/* Generation Chamber State */}
         {isGenerating ? (
           <div className="my-auto flex flex-col items-center justify-center gap-6 py-8">
@@ -201,20 +223,12 @@ export function PreviewStage({
               label={label}
               directions={directions}
               reactions={reactions}
-              expressionOnLoad
+              goToSleep={goToSleep}
               idleBlink={idleBlink}
               followPointer={followPointer}
               onLook={(look) => setCurrentLook(look)}
               className="cursor-pointer transition-transform duration-150 active:scale-95"
             />
-            <div className="mt-3 flex items-center gap-2">
-              <span className="font-heading text-sm font-semibold tracking-tight text-foreground">
-                {label}
-              </span>
-              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-                Live 360°
-              </span>
-            </div>
           </div>
         )}
 
@@ -338,13 +352,13 @@ export function PreviewStage({
 
         {/* Behavior & Size Toggles */}
         <div className="flex flex-col gap-2 border-t border-border/40 pt-3">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-1.5">
             {/* Follow Pointer */}
             <button
               type="button"
               onClick={() => setFollowPointer((prev) => !prev)}
               className={cn(
-                "flex items-center justify-between rounded-lg border px-2.5 py-1.5 text-xs transition-all active:scale-[0.98]",
+                "flex items-center justify-between rounded-lg border px-2 py-1.5 text-xs transition-all active:scale-[0.96] cursor-pointer",
                 followPointer
                   ? "border-primary/40 bg-primary/5 text-foreground shadow-2xs"
                   : "border-border/60 bg-muted/20 text-muted-foreground hover:bg-muted/50"
@@ -352,7 +366,7 @@ export function PreviewStage({
             >
               <div className="flex items-center gap-1">
                 <HugeiconsIcon icon={Cursor01Icon} className="size-3 text-primary" />
-                <span className="text-[11px] font-medium">Follow</span>
+                <span className="text-[10px] sm:text-[11px] font-medium">Follow</span>
               </div>
               <span
                 className={cn(
@@ -367,7 +381,7 @@ export function PreviewStage({
               type="button"
               onClick={() => setIdleBlink((prev) => !prev)}
               className={cn(
-                "flex items-center justify-between rounded-lg border px-2.5 py-1.5 text-xs transition-all active:scale-[0.98]",
+                "flex items-center justify-between rounded-lg border px-2 py-1.5 text-xs transition-all active:scale-[0.96] cursor-pointer",
                 idleBlink
                   ? "border-primary/40 bg-primary/5 text-foreground shadow-2xs"
                   : "border-border/60 bg-muted/20 text-muted-foreground hover:bg-muted/50"
@@ -375,12 +389,35 @@ export function PreviewStage({
             >
               <div className="flex items-center gap-1">
                 <HugeiconsIcon icon={EyeIcon} className="size-3 text-primary" />
-                <span className="text-[11px] font-medium">Blink</span>
+                <span className="text-[10px] sm:text-[11px] font-medium">Blink</span>
               </div>
               <span
                 className={cn(
                   "size-1.5 rounded-full transition-colors",
                   idleBlink ? "bg-primary" : "bg-muted-foreground/30"
+                )}
+              />
+            </button>
+
+            {/* Sleep Mode */}
+            <button
+              type="button"
+              onClick={() => setGoToSleep((prev) => !prev)}
+              className={cn(
+                "flex items-center justify-between rounded-lg border px-2 py-1.5 text-xs transition-all active:scale-[0.96] cursor-pointer",
+                goToSleep
+                  ? "border-primary/40 bg-primary/10 text-primary shadow-2xs font-semibold ring-1 ring-primary/40"
+                  : "border-border/60 bg-muted/20 text-muted-foreground hover:bg-muted/50"
+              )}
+            >
+              <div className="flex items-center gap-1">
+                <HugeiconsIcon icon={Moon02Icon} className="size-3 text-primary" />
+                <span className="text-[10px] sm:text-[11px] font-medium">Sleep</span>
+              </div>
+              <span
+                className={cn(
+                  "size-1.5 rounded-full transition-colors",
+                  goToSleep ? "bg-primary animate-pulse" : "bg-muted-foreground/30"
                 )}
               />
             </button>
@@ -390,15 +427,15 @@ export function PreviewStage({
           <div className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/20 px-2.5 py-1">
             <span className="text-[10px] font-medium text-muted-foreground">Size</span>
             <div className="flex gap-1">
-              {[150, 200, 240].map((s) => (
+              {[160, 200, 240, 280].map((s) => (
                 <button
                   key={s}
                   type="button"
                   onClick={() => setSize(s)}
                   className={cn(
-                    "rounded px-1.5 py-0.5 text-[10px] font-medium transition-colors",
+                    "cursor-pointer rounded px-1.5 py-0.5 text-[10px] font-medium transition-colors active:scale-[0.96] transition-transform duration-100 ease-out",
                     size === s
-                      ? "bg-foreground text-background shadow-2xs"
+                      ? "bg-foreground text-background shadow-2xs font-semibold"
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >

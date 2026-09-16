@@ -45,9 +45,8 @@ export function Header() {
   return (
     <Mascot
       className="bg-yellow-400"
-      size={140}
+      size={240}
       label="Taqui"
-      expressionOnLoad
     />
   )
 }
@@ -74,7 +73,7 @@ A published npm install does not need this.
 <script type="module">
   import 'mascot-taqui'
 </script>
-<mascot-taqui size="140" label="Taqui" expression-on-load></mascot-taqui>
+<mascot-taqui size="240" label="Taqui"></mascot-taqui>
 ```
 
 Works in Vue, Svelte, Angular (`CUSTOM_ELEMENTS_SCHEMA`), Astro, Deno Fresh, and static HTML. The widget needs a browser DOM. Node, Bun, and Deno run the **CLI**; they do not track a cursor in a headless process.
@@ -107,10 +106,12 @@ handle.destroy()
 
 | React / Vue | Web component | Default | |
 | --- | --- | --- | --- |
-| `size` | `size` | `140` | Square CSS pixels |
+| `size` | `size` | `240` | Square CSS pixels |
 | `label` | `label` | `"Taqui"` | Accessible name |
 | `className` | `class` | | Host class (backgrounds work; we do not set an inline `background`) |
-| `expressionOnLoad` | `expression-on-load` | `false` | Short “awake” sequence after both sheets decode |
+| `goToSleep` | `go-to-sleep` | `false` | When true, reaction is "sleepy" and pointer tracking/blinks are paused |
+| `reaction` | `reaction` | `null` | Declarative expression override (`"sleepy"`, `"heart"`, `"wink"`, etc.) |
+| `look` | `look` | `"center"` | Declarative glance angle |
 | `idleBlink` | `idle-blink` | `true` | Occasional blink while idle |
 | `followPointer` | `follow-pointer` | `true` | Head tracks a fine pointer |
 | `disabled` | `disabled` | `false` | No tracking, no boop |

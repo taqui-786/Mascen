@@ -27,14 +27,14 @@ const SVELTE = `<script lang="ts">
   import 'mascot-taqui'
 
   let {
-    size = 140,
+    size = 240,
     label = 'Taqui',
-    expressionOnLoad = false,
+    goToSleep = false,
     class: className = '',
   }: {
     size?: number
     label?: string
-    expressionOnLoad?: boolean
+    goToSleep?: boolean
     class?: string
   } = $props()
 
@@ -45,7 +45,7 @@ const SVELTE = `<script lang="ts">
   class={className}
   size={String(size)}
   label={label}
-  expression-on-load={expressionOnLoad ? '' : undefined}
+  go-to-sleep={goToSleep ? '' : undefined}
 ></mascot-taqui>
 `
 
@@ -54,16 +54,16 @@ interface Props {
   size?: number
   label?: string
   class?: string
-  expressionOnLoad?: boolean
+  goToSleep?: boolean
 }
-const { size = 140, label = 'Taqui', class: className = '', expressionOnLoad = false } = Astro.props
+const { size = 240, label = 'Taqui', class: className = '', goToSleep = false } = Astro.props
 ---
 
 <mascot-taqui
   class={className}
   size={String(size)}
   label={label}
-  expression-on-load={expressionOnLoad ? '' : undefined}
+  go-to-sleep={goToSleep ? '' : undefined}
 ></mascot-taqui>
 
 <script>

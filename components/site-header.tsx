@@ -29,7 +29,7 @@ export function SiteHeader({
   hasApiKey = false,
 }: SiteHeaderProps) {
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl transition-all">
+    <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl">
       <div className="flex h-14 w-full items-center justify-between gap-2 sm:gap-4 px-3 sm:px-8">
         {/* Brand */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
@@ -49,58 +49,65 @@ export function SiteHeader({
           </a>
         </div>
 
-        {/* Studio Mode Switcher (Highlighted Segmented Switcher) */}
+        {/* Studio Mode Switcher (Tactile Segmented Switcher) */}
         {onStudioModeChange && (
           <nav
+            role="tablist"
             aria-label="Studio Mode"
-            className="flex items-center rounded-2xl border border-border/80 bg-card/90 p-1 shadow-xs backdrop-blur-md"
+            className="flex items-center rounded-full border border-border/60 bg-muted/60 p-1 shadow-2xs backdrop-blur-md"
           >
             <button
               type="button"
+              role="tab"
+              aria-selected={studioMode === "interactive"}
               onClick={() => onStudioModeChange("interactive")}
               className={cn(
-                "flex items-center gap-1.5 sm:gap-2 rounded-xl px-2.5 sm:px-4 py-1 sm:py-1.5 text-xs font-semibold transition-all duration-150 active:scale-[0.98]",
+                "group relative flex items-center gap-1.5 sm:gap-2 rounded-full px-3 sm:px-4 py-1.5 text-xs font-medium cursor-pointer select-none",
+                "transition-colors duration-150 active:scale-[0.96] transition-transform duration-100 ease-out",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 studioMode === "interactive"
-                  ? "bg-primary text-primary-foreground shadow-sm font-bold ring-1 ring-primary/80"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  ? "bg-background text-foreground font-semibold shadow-xs border border-border/50"
+                  : "text-muted-foreground hover:text-foreground hover:bg-background/40 border border-transparent"
               )}
             >
               <HugeiconsIcon
                 icon={SparklesIcon}
                 className={cn(
-                  "size-3.5 shrink-0 transition-colors",
-                  studioMode === "interactive" ? "text-primary-foreground" : "text-emerald-500"
+                  "size-3.5 shrink-0 transition-colors duration-150",
+                  studioMode === "interactive"
+                    ? "text-primary"
+                    : "text-muted-foreground group-hover:text-foreground"
                 )}
               />
               <span className="hidden sm:inline">Interactive Mascot</span>
               <span className="sm:hidden">Interactive</span>
-              {studioMode === "interactive" && (
-                <span className="hidden md:inline-flex size-1.5 rounded-full bg-primary-foreground/90 ml-0.5 animate-pulse" />
-              )}
             </button>
 
             <button
               type="button"
+              role="tab"
+              aria-selected={studioMode === "logo"}
               onClick={() => onStudioModeChange("logo")}
               className={cn(
-                "flex items-center gap-1.5 sm:gap-2 rounded-xl px-2.5 sm:px-4 py-1 sm:py-1.5 text-xs font-semibold transition-all duration-150 active:scale-[0.98]",
+                "group relative flex items-center gap-1.5 sm:gap-2 rounded-full px-3 sm:px-4 py-1.5 text-xs font-medium cursor-pointer select-none",
+                "transition-colors duration-150 active:scale-[0.96] transition-transform duration-100 ease-out",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 studioMode === "logo"
-                  ? "bg-primary text-primary-foreground shadow-sm font-bold ring-1 ring-primary/80"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  ? "bg-background text-foreground font-semibold shadow-xs border border-border/50"
+                  : "text-muted-foreground hover:text-foreground hover:bg-background/40 border border-transparent"
               )}
             >
               <HugeiconsIcon
                 icon={PaintBoardIcon}
                 className={cn(
-                  "size-3.5 shrink-0 transition-colors",
-                  studioMode === "logo" ? "text-primary-foreground" : "text-amber-500"
+                  "size-3.5 shrink-0 transition-colors duration-150",
+                  studioMode === "logo"
+                    ? "text-primary"
+                    : "text-muted-foreground group-hover:text-foreground"
                 )}
               />
               <span className="hidden sm:inline">Mascot Logo Maker</span>
               <span className="sm:hidden">Logo Maker</span>
-              {studioMode === "logo" && (
-                <span className="hidden md:inline-flex size-1.5 rounded-full bg-primary-foreground/90 ml-0.5 animate-pulse" />
-              )}
             </button>
           </nav>
         )}
@@ -113,7 +120,7 @@ export function SiteHeader({
               variant="outline"
               size="sm"
               onClick={onOpenSettings}
-              className="h-8 gap-1.5 rounded-xl border-border/80 bg-card px-2.5 text-xs font-medium"
+              className="h-8 gap-1.5 rounded-xl border-border/80 bg-card px-2.5 text-xs font-medium cursor-pointer active:scale-[0.96] transition-transform duration-100 ease-out"
             >
               <HugeiconsIcon icon={Settings02Icon} className="size-3.5 text-muted-foreground" />
               <span className="hidden sm:inline capitalize">{providerName}</span>
@@ -130,7 +137,7 @@ export function SiteHeader({
             <Button
               variant="ghost"
               size="icon"
-              className="size-8 rounded-lg"
+              className="size-8 rounded-lg text-muted-foreground hover:text-foreground active:scale-[0.96] transition-transform duration-100 ease-out"
               nativeButton={false}
               render={
                 <a
@@ -146,7 +153,7 @@ export function SiteHeader({
             <Button
               variant="ghost"
               size="icon"
-              className="size-8 rounded-lg"
+              className="size-8 rounded-lg text-muted-foreground hover:text-foreground active:scale-[0.96] transition-transform duration-100 ease-out"
               nativeButton={false}
               render={
                 <a

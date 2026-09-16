@@ -1,4 +1,5 @@
 import { createMascot, type MascotHandle } from '../runtime/create-mascot'
+import type { Expression, Look } from '../runtime/atlas'
 
 export const TAG = 'mascot-taqui'
 
@@ -11,12 +12,16 @@ function boolAttr(value: string | null, fallback: boolean): boolean {
 
 function readOptions(el: MascotTaqui) {
   const sizeAttr = el.getAttribute('size')
+  const reactionAttr = el.getAttribute('reaction') as Expression | null
+  const lookAttr = el.getAttribute('look') as Look | null
   return {
     directions: el.getAttribute('directions') ?? '/mascots/taqui-directions.webp',
     reactions: el.getAttribute('reactions') ?? '/mascots/taqui-reactions.webp',
     size: sizeAttr ? Number(sizeAttr) || 140 : 140,
     label: el.getAttribute('label') ?? 'Taqui',
-    expressionOnLoad: boolAttr(el.getAttribute('expression-on-load'), false),
+    goToSleep: boolAttr(el.getAttribute('go-to-sleep'), false),
+    reaction: reactionAttr || null,
+    look: lookAttr || undefined,
     idleBlink: boolAttr(el.getAttribute('idle-blink'), false),
     followPointer: boolAttr(el.getAttribute('follow-pointer'), true),
     disabled: boolAttr(el.getAttribute('disabled'), false),
@@ -30,7 +35,9 @@ export class MascotTaqui extends HTMLElement {
       'label',
       'directions',
       'reactions',
-      'expression-on-load',
+      'go-to-sleep',
+      'reaction',
+      'look',
       'idle-blink',
       'follow-pointer',
       'disabled',
@@ -63,6 +70,22 @@ export class MascotTaqui extends HTMLElement {
 
   boop() {
     this.#handle?.boop()
+  }
+
+  sleep() {
+    this.#handle?.sleep()
+  }
+
+  wake() {
+    this.#handle?.wake()
+  }
+
+  glance(look: Look) {
+    this.#handle?.glance(look)
+  }
+
+  react(expression: Expression, holdMs?: number) {
+    this.#handle?.react(expression, holdMs)
   }
 
   #mount() {

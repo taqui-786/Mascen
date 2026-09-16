@@ -17,7 +17,9 @@ export type MascotOptions = {
   reactions: string
   size?: number
   label?: string
-  expressionOnLoad?: boolean
+  goToSleep?: boolean
+  reaction?: Expression | null
+  look?: Look
   idleBlink?: boolean
   followPointer?: boolean
   disabled?: boolean
@@ -32,6 +34,8 @@ export type MascotHandle = {
   boop(): void
   glance(look: Look): void
   react(expression: Expression, holdMs?: number): void
+  sleep(): void
+  wake(): void
   setSize(px: number): void
   pause(): void
   resume(): void
@@ -72,13 +76,14 @@ export function createMascot(host: HTMLElement, options: MascotOptions): MascotH
   let label = options.label ?? 'Taqui'
   let directions = options.directions
   let reactions = options.reactions
-  let expressionOnLoad = options.expressionOnLoad ?? false
+  let goToSleep = options.goToSleep ?? false
+  let controlledReaction: Expression | null = options.reaction ?? null
   let idleBlink = options.idleBlink ?? false
   let followPointer = options.followPointer ?? true
   let disabled = options.disabled ?? false
 
-  let look: Look = 'center'
-  let expression: Expression | null = null
+  let look: Look = options.look ?? 'center'
+  let expression: Expression | null = goToSleep ? 'sleepy' : controlledReaction
   let paused = false
   let destroyed = false
   let visible = true
@@ -111,6 +116,7 @@ export function createMascot(host: HTMLElement, options: MascotOptions): MascotH
   applyHostChrome()
   applySheets()
   paint()
+  if (expression) options.onExpression?.(expression)
 
   function applyHostChrome() {
     const s = host.style
@@ -167,7 +173,7 @@ export function createMascot(host: HTMLElement, options: MascotOptions): MascotH
   }
 
   function trackingOn() {
-    return followPointer && !disabled && !paused && visible && finePointer()
+    return followPointer && !goToSleep && !disabled && !paused && visible && finePointer()
   }
 
   function aim() {
@@ -184,10 +190,6 @@ export function createMascot(host: HTMLElement, options: MascotOptions): MascotH
       raf = 0
       aim()
     })
-  }
-
-  function greetingSteps(): Step[] {
-    return LOAD_GREETING.map((name) => ({ expression: name, ms: GREET_BEAT_MS }))
   }
 
   function clearSequence() {
@@ -207,7 +209,7 @@ export function createMascot(host: HTMLElement, options: MascotOptions): MascotH
     }
     sequenceTimers.push(
       env.setTimeout(() => {
-        setExpression(null)
+        setExpression(goToSleep ? 'sleepy' : controlledReaction)
         scheduleIdle()
       }, wait),
     )
@@ -215,17 +217,17 @@ export function createMascot(host: HTMLElement, options: MascotOptions): MascotH
 
   function scheduleIdle() {
     env.clearTimeout(idleTimer)
-    if (!idleBlink || disabled || paused || !visible || reduceMotion()) return
+    if (goToSleep || !idleBlink || disabled || paused || !visible || reduceMotion()) return
     const delay = IDLE_MIN_MS + env.random() * IDLE_SPAN_MS
     idleTimer = env.setTimeout(() => {
-      if (expression !== null || disabled || paused || look !== 'center') {
+      if (goToSleep || expression !== null || disabled || paused || look !== 'center') {
         scheduleIdle()
         return
       }
       setExpression('blink')
       sequenceTimers.push(
         env.setTimeout(() => {
-          setExpression(null)
+          setExpression(goToSleep ? 'sleepy' : controlledReaction)
           scheduleIdle()
         }, BLINK_HOLD_MS),
       )
@@ -235,6 +237,13 @@ export function createMascot(host: HTMLElement, options: MascotOptions): MascotH
   function boop() {
     if (disabled || paused) return
     options.onBoop?.()
+    if (goToSleep) {
+      if (!reduceMotion() && typeof squash.animate === 'function') {
+        squash.getAnimations?.().forEach((a) => a.cancel())
+        squash.animate(SQUASH, { duration: SQUASH_MS, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' })
+      }
+      return
+    }
     const now = env.now()
     rapidClicks = now - boopAt < DIZZY_WINDOW_MS ? rapidClicks + 1 : 1
     boopAt = now
@@ -379,22 +388,57 @@ export function createMascot(host: HTMLElement, options: MascotOptions): MascotH
     requestAim()
   }
 
+  function sleep() {
+    goToSleep = true
+    clearSequence()
+    env.clearTimeout(idleTimer)
+    setExpression('sleepy')
+  }
+
+  function wake() {
+    goToSleep = false
+    setExpression(controlledReaction)
+    scheduleIdle()
+    requestAim()
+  }
+
   function update(partial: Partial<Omit<MascotOptions, 'env'>>) {
     if (partial.size != null) size = partial.size
     if (partial.label != null) label = partial.label
     if (partial.directions != null) directions = partial.directions
     if (partial.reactions != null) reactions = partial.reactions
-    if (partial.expressionOnLoad != null) expressionOnLoad = partial.expressionOnLoad
     if (partial.idleBlink != null) idleBlink = partial.idleBlink
     if (partial.followPointer != null) followPointer = partial.followPointer
     if (partial.disabled != null) disabled = partial.disabled
+    if (partial.look != null) setLook(partial.look)
     if (partial.onBoop) options.onBoop = partial.onBoop
     if (partial.onLook) options.onLook = partial.onLook
     if (partial.onExpression) options.onExpression = partial.onExpression
+
+    if (partial.reaction !== undefined) {
+      controlledReaction = partial.reaction
+    }
+
+    if (partial.goToSleep != null) {
+      const wasSleeping = goToSleep
+      goToSleep = partial.goToSleep
+      if (goToSleep) {
+        clearSequence()
+        env.clearTimeout(idleTimer)
+        setExpression('sleepy')
+      } else if (wasSleeping) {
+        setExpression(controlledReaction)
+        scheduleIdle()
+        requestAim()
+      }
+    } else if (!goToSleep && partial.reaction !== undefined) {
+      setExpression(controlledReaction)
+    }
+
     applyHostChrome()
     applySheets()
     paint()
-    if (!idleBlink) env.clearTimeout(idleTimer)
+    if (!idleBlink || goToSleep) env.clearTimeout(idleTimer)
     else scheduleIdle()
     requestAim()
   }
@@ -407,9 +451,14 @@ export function createMascot(host: HTMLElement, options: MascotOptions): MascotH
   bind()
   void preload().then(() => {
     if (destroyed || disabled) return
-    if (expressionOnLoad && !reduceMotion()) playSequence(greetingSteps())
-    else scheduleIdle()
+    if (goToSleep) {
+      setExpression('sleepy')
+    } else if (controlledReaction) {
+      setExpression(controlledReaction)
+    } else {
+      scheduleIdle()
+    }
   })
 
-  return { destroy, boop, glance, react, setSize, pause, resume, update }
+  return { destroy, boop, glance, react, sleep, wake, setSize, pause, resume, update }
 }
