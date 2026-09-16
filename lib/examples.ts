@@ -26,81 +26,13 @@ function sheets(id: string) {
   return { directions, reactions, image: directions }
 }
 
-function titleOf(id: string) {
-  return id.charAt(0).toUpperCase() + id.slice(1)
+export const TAQUI: MascotExample = {
+  id: "taqui",
+  title: "Taqui",
+  prompt: "a chibi man with a neat beard, dark hair, and a navy suit",
+  mode: "prompt",
+  ...sheets("taqui"),
 }
-
-const FEED_IDS = [
-  "taqui",
-  "bear",
-  "bunny",
-  "cat",
-  "deer",
-  "dino",
-  "fox",
-  "frog",
-  "hamster",
-  "hedgehog",
-  "koala",
-  "otter",
-  "owl",
-  "panda",
-  "penguin",
-  "pug",
-  "raccoon",
-  "redpanda",
-  "sheep",
-  "sloth",
-  "tiger",
-  "afro",
-  "astronaut",
-  "bald",
-  "ballerina",
-  "beard",
-  "builder",
-  "cap",
-  "chef",
-  "glasses",
-  "grandpa",
-  "granny",
-  "hijabi",
-  "nurse",
-  "pirate",
-  "scientist",
-  "sikh",
-  "skater",
-  "wizard",
-  "clockwork",
-  "crt",
-  "cube",
-  "drone",
-  "gearbot",
-  "knight",
-  "lantern",
-  "postbot",
-  "radio",
-  "rocket",
-  "scout",
-  "toaster",
-  "tv",
-] as const
-
-const PROMPTS: Record<string, string> = {
-  taqui: "a chibi man with a neat beard, dark hair, and a navy suit",
-  otter: "a chibi otter with chocolate-brown fur, a cream muzzle and dark ear tips",
-  fox: "a cute chibi fox with warm orange fur, a cream muzzle and dark ear tips",
-  granny: "a chibi grandmother with silver hair in a neat bun and round gold spectacles",
-}
-
-export const EXAMPLES: MascotExample[] = FEED_IDS.map((id) => ({
-  id,
-  title: titleOf(id),
-  mode: "prompt" as const,
-  prompt: PROMPTS[id] ?? `a chibi ${id}`,
-  ...sheets(id),
-}))
-
-export const TAQUI = EXAMPLES[0]!
 
 export const STYLES: StyleLook[] = [
   {
@@ -145,5 +77,4 @@ export const STYLES: StyleLook[] = [
     prompt: "in pixel art, 32 pixels across, chibi, head and shoulders",
     ...sheets("fox-pixel"),
   },
-
 ]

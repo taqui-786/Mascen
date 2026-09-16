@@ -285,7 +285,7 @@ export async function POST(req: NextRequest) {
             reactionsUrl = `data:image/webp;base64,${reactWebp.toString("base64")}`
           }
 
-          // 8. Log generation to Neon DB via Drizzle if configured
+          let insertedId = ""
           if (db) {
             send({
               type: "step",
@@ -294,49 +294,51 @@ export async function POST(req: NextRequest) {
               message: "Saving telemetry record to database...",
             })
 
-          try {
-            await db.insert(mascotGenerations).values({
-              name: nameInput,
-              prompt,
-              style,
-              mode,
-              provider,
-              model,
-              directionsR2Url: directionsUrl,
-              reactionsR2Url: reactionsUrl,
-              userIp,
-              userAgent,
-              device: /mobile/i.test(userAgent) ? "mobile" : "desktop",
-              boopShiftPx: metrics.shift.toString(),
-              paletteMatchPercent: metrics.paletteMatch.toString(),
-              shoulderVariancePercent: metrics.widthChange.toString(),
-            })
-          } catch (dbErr) {
-            console.error("Neon DB insert warning:", dbErr)
+            try {
+              const [inserted] = await db.insert(mascotGenerations).values({
+                name: nameInput,
+                prompt,
+                style,
+                mode,
+                provider,
+                model,
+                directionsR2Url: directionsUrl,
+                reactionsR2Url: reactionsUrl,
+                userIp,
+                userAgent,
+                device: /mobile/i.test(userAgent) ? "mobile" : "desktop",
+                boopShiftPx: metrics.shift.toString(),
+                paletteMatchPercent: metrics.paletteMatch.toString(),
+                shoulderVariancePercent: metrics.widthChange.toString(),
+                createdAt: new Date(),
+              }).returning({ id: mascotGenerations.id })
+              if (inserted?.id) insertedId = inserted.id
+            } catch (dbErr) {
+              console.error("Neon DB insert warning:", dbErr)
+            }
           }
-        }
 
-        // 9. Completion
-        send({
-          type: "step",
-          step: "DONE",
-          progress: 100,
-          message: "Mascot generation complete!",
-        })
+          send({
+            type: "step",
+            step: "DONE",
+            progress: 100,
+            message: "Mascot generation complete!",
+          })
 
-        send({
-          type: "done",
-          result: {
-            name: slug,
-            directionsUrl,
-            reactionsUrl,
-            metrics: {
-              shift: metrics.shift,
-              paletteMatch: metrics.paletteMatch,
-              widthChange: metrics.widthChange,
+          send({
+            type: "done",
+            result: {
+              id: insertedId || slug,
+              name: nameInput,
+              directionsUrl,
+              reactionsUrl,
+              metrics: {
+                shift: metrics.shift,
+                paletteMatch: metrics.paletteMatch,
+                widthChange: metrics.widthChange,
+              },
             },
-          },
-        })
+          })
       } catch (err: any) {
         console.error("Mascot generation error:", err)
         send({

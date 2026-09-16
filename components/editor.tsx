@@ -40,6 +40,8 @@ import {
   type StoredMascot,
   type StoredProviderConfig,
 } from "@/lib/storage/indexed-db"
+import { useQueryClient } from "@tanstack/react-query"
+import { mascotKeys } from "@/lib/queries/mascots"
 import type { AgentSSEEvent } from "@/lib/agent/types"
 
 type Mode = ExampleMode
@@ -54,6 +56,7 @@ const PROMPT_INSPIRATIONS = [
 ]
 
 export function Editor() {
+  const queryClient = useQueryClient()
   const fileRef = useRef<HTMLInputElement>(null)
   const promptRef = useRef<HTMLTextAreaElement>(null)
 
@@ -313,17 +316,24 @@ export function Editor() {
             setMetrics(event.data)
           } else if (event.type === "done") {
             const resObj = event.result
-            setPicked({
-              id: resObj.name,
+            const newMascot: MascotExample = {
+              id: resObj.id || resObj.name,
               title: resObj.name,
               prompt: trimmed,
               mode,
               directions: resObj.directionsUrl,
               reactions: resObj.reactionsUrl,
               image: resObj.directionsUrl,
-            })
+            }
+            setPicked(newMascot)
+            setPickedStyle(null)
 
-            // Save telemetry record to local IndexedDB as well
+            queryClient.setQueryData<MascotExample[]>(mascotKeys.all, (old = []) => [
+              newMascot,
+              ...old.filter((m) => m.id !== newMascot.id),
+            ])
+            await queryClient.invalidateQueries({ queryKey: mascotKeys.all })
+
             const stored: StoredMascot = {
               id: `${resObj.name}-${Date.now()}`,
               name: resObj.name,

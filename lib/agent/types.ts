@@ -38,6 +38,7 @@ export interface AgentMetricEvent {
 export interface AgentDoneEvent {
   type: "done"
   result: {
+    id?: string
     name: string
     directionsUrl: string
     reactionsUrl: string
