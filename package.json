@@ -8,17 +8,26 @@
     "prebuild": "pnpm --filter mascot-taqui build",
     "build:package": "pnpm --filter mascot-taqui build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:push": "drizzle-kit push",
+    "db:generate": "drizzle-kit generate"
   },
   "workspaces": [
     "packages/*"
   ],
   "dependencies": {
+    "@ai-sdk/google": "^4.0.70",
+    "@ai-sdk/openai": "^4.0.66",
+    "@aws-sdk/client-s3": "^3.1132.0",
     "@base-ui/react": "^1.8.0",
     "@hugeicons/core-free-icons": "^4.3.3",
     "@hugeicons/react": "^1.1.10",
+    "@neondatabase/serverless": "^1.1.0",
+    "ai": "^7.0.101",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.3.0",
+    "drizzle-orm": "^0.45.2",
+    "idb": "^8.0.3",
     "mascot-taqui": "workspace:*",
     "next": "16.3.5",
     "react": "19.2.8",
@@ -31,6 +40,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
     "tailwindcss": "^4",
