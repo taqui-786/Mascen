@@ -130,3 +130,6 @@ Row 3: down-left, down, down-right.
 NO hearts, NO sparkles, NO "zzz", NO spiral eyes -- no floating symbols of any kind.
 ${TAIL}`
 }
+
+export * from "./logo-prompts"
+

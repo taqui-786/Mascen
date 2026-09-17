@@ -1,0 +1,20 @@
+CREATE TABLE "mascot_logos" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"name" varchar(100) NOT NULL,
+	"prompt" text NOT NULL,
+	"style" varchar(50) NOT NULL,
+	"image_url" text NOT NULL,
+	"tagline" varchar(150),
+	"layout" varchar(30) DEFAULT 'stacked' NOT NULL,
+	"bg_type" varchar(30) DEFAULT 'solid' NOT NULL,
+	"bg_color" varchar(100) DEFAULT '#ffffff' NOT NULL,
+	"angle_index" integer DEFAULT 4,
+	"reaction" varchar(50),
+	"source_mascot_id" varchar(100),
+	"provider" varchar(50) DEFAULT 'custom' NOT NULL,
+	"model" varchar(100) DEFAULT 'default' NOT NULL,
+	"likes_count" integer DEFAULT 0 NOT NULL,
+	"user_ip" varchar(100),
+	"user_agent" text,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);

@@ -1,0 +1,152 @@
+import { NextRequest } from "next/server"
+import { generateImageBuffer } from "@/lib/agent/image-provider"
+import { buildMascotLogoSheetPrompt } from "@/lib/agent/logo-prompts"
+import type { ProviderType } from "@/lib/agent/types"
+import { isR2Configured, uploadMascotToR2 } from "@/lib/storage/r2"
+import { db } from "@/lib/db"
+import { mascotLogos } from "@/lib/db/schema"
+
+export const maxDuration = 120
+
+export async function POST(req: NextRequest) {
+  const provider = (req.headers.get("x-provider") || "openai") as ProviderType
+  const apiKey = req.headers.get("x-api-key") || ""
+  const baseURL = req.headers.get("x-base-url") || undefined
+  const model = req.headers.get("x-model") || "dall-e-3"
+
+  if (!apiKey.trim()) {
+    return new Response(
+      JSON.stringify({ error: "Missing API Key. Please configure your API key in Settings." }),
+      { status: 400, headers: { "Content-Type": "application/json" } }
+    )
+  }
+
+  const formData = await req.formData()
+  const prompt = (formData.get("prompt") as string) || ""
+  const brandName = (formData.get("brandName") as string) || "Brand"
+  const tagline = (formData.get("tagline") as string) || ""
+  const style = (formData.get("style") as string) || "modern-3d"
+  const layout = "icon-only"
+
+  const encoder = new TextEncoder()
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      function sendEvent(event: string, data: Record<string, unknown>) {
+        controller.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`))
+      }
+
+      try {
+        // 1. Build Prompt
+        sendEvent("status", {
+          step: "BUILDING_PROMPT",
+          message: `Building 3×3 nine-variant logo sheet prompt for "${brandName}"...`,
+          progress: 15,
+        })
+
+        const masterPrompt = buildMascotLogoSheetPrompt({ brandName, describe: prompt, style, tagline })
+
+        // 2. Generate Image with AI Provider
+        sendEvent("status", {
+          step: "GENERATING_LOGO",
+          message: `Generating mascot logo with ${provider} (${model})...`,
+          progress: 45,
+        })
+
+        const imageBuffer = await generateImageBuffer({
+          provider,
+          apiKey,
+          baseURL,
+          model,
+          prompt: masterPrompt,
+        })
+
+        // 3. Storage / Asset URL Resolution
+        sendEvent("status", {
+          step: "OPTIMIZING_ASSET",
+          message: "Optimizing high-resolution logo asset...",
+          progress: 80,
+        })
+
+        let imageUrl = ""
+        const timestamp = Date.now()
+        const slug = brandName.toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 24) || "logo"
+
+        if (isR2Configured) {
+          try {
+            const key = `logos/${slug}/${timestamp}.png`
+            const uploadedUrl = await uploadMascotToR2({
+              buffer: imageBuffer,
+              key,
+              contentType: "image/png",
+            })
+            if (uploadedUrl) imageUrl = uploadedUrl
+          } catch (r2Err) {
+            console.error("R2 upload error for logo:", r2Err)
+          }
+        }
+
+        if (!imageUrl) {
+          imageUrl = `data:image/png;base64,${imageBuffer.toString("base64")}`
+        }
+
+        // 4. Save to Database Feed (Phase 1 Table)
+        sendEvent("status", {
+          step: "SAVING_TO_FEED",
+          message: "Saving logo to database feed...",
+          progress: 92,
+        })
+
+        let logoId = `logo-${timestamp}`
+        if (db) {
+          try {
+            const [saved] = await db
+              .insert(mascotLogos)
+              .values({
+                name: brandName,
+                prompt,
+                style,
+                imageUrl,
+                tagline,
+                layout,
+                provider,
+                model,
+                likesCount: 0,
+              })
+              .returning()
+
+            if (saved?.id) logoId = saved.id
+          } catch (dbErr) {
+            console.error("Failed to save generated logo to DB:", dbErr)
+          }
+        }
+
+        // 5. Complete Event
+        sendEvent("complete", {
+          id: logoId,
+          title: brandName,
+          prompt,
+          style,
+          tagline,
+          imageUrl,
+          progress: 100,
+        })
+
+        controller.close()
+      } catch (err: unknown) {
+        console.error("Logo generation failed:", err)
+        const errorMessage = err instanceof Error ? err.message : "Unknown logo generation error"
+        sendEvent("error", { message: errorMessage })
+        controller.close()
+      }
+    },
+  })
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
+    },
+  })
+}

@@ -1,9 +1,10 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import Link from "next/link"
+import { usePathname, useRouter } from "next/navigation"
 import {
   AiSparklesIcon,
-  ArrowRight01Icon,
   Cancel01Icon,
   ImageAdd01Icon,
   ImageUpload01Icon,
@@ -14,6 +15,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react"
 
 import { ExampleGallery } from "@/components/example-gallery"
+import { LogoFeed } from "@/components/logo-feed"
 import { MascotExport } from "@/components/mascot-export"
 import { MascotLogoStudio } from "@/components/mascot-logo-studio"
 import { PreviewStage } from "@/components/preview-stage"
@@ -58,8 +60,9 @@ export function Editor() {
   const fileRef = useRef<HTMLInputElement>(null)
   const promptRef = useRef<HTMLTextAreaElement>(null)
 
-  // Studio Mode: "interactive" (360° runtime & generation) | "logo" (Logo Maker)
-  const [studioMode, setStudioMode] = useState<StudioMode>("interactive")
+  const pathname = usePathname()
+  const router = useRouter()
+  const studioMode: StudioMode = pathname === "/mascot-logo" ? "logo" : "interactive"
 
   const [mode, setMode] = useState<Mode>("prompt")
   const [prompt, setPrompt] = useState("")
@@ -70,6 +73,8 @@ export function Editor() {
   const [photoError, setPhotoError] = useState<string | null>(null)
 
   const [picked, setPicked] = useState(TAQUI)
+  const [selectedLogo, setSelectedLogo] = useState(TAQUI)
+  const [selectedLogoSingleImage, setSelectedLogoSingleImage] = useState(false)
   const [pickedStyle, setPickedStyle] = useState<string | null>(null)
 
   // Provider State
@@ -91,26 +96,7 @@ export function Editor() {
     getProviderConfig().then((cfg) => {
       if (cfg) setProviderConfig(cfg)
     })
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search)
-      if (params.get("mode") === "logo" || window.location.hash === "#logo") {
-        setStudioMode("logo")
-      }
-    }
   }, [])
-
-  function handleStudioModeChange(nextMode: StudioMode) {
-    setStudioMode(nextMode)
-    if (typeof window !== "undefined") {
-      const url = new URL(window.location.href)
-      if (nextMode === "logo") {
-        url.searchParams.set("mode", "logo")
-      } else {
-        url.searchParams.delete("mode")
-      }
-      window.history.replaceState({}, "", url.toString())
-    }
-  }
 
   function applyExample(example: MascotExample) {
     setPicked(example)
@@ -148,7 +134,7 @@ export function Editor() {
   }
 
   function makeYourOwn() {
-    setStudioMode("interactive")
+    if (studioMode !== "interactive") router.push("/mascot-character")
     setMode("prompt")
     setPicked(TAQUI)
     setPickedStyle(null)
@@ -161,6 +147,31 @@ export function Editor() {
     clearPhoto()
     promptRef.current?.focus()
     window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
+  function handleLogoSelected(logo: {
+    id: string
+    title: string
+    prompt: string
+    image: string
+    style?: string
+    tagline?: string
+  }, singleImage = logo.style === "mascot-studio" || logo.image.startsWith("data:image/")) {
+    setSelectedLogoSingleImage(singleImage)
+    setSelectedLogo({
+      id: logo.id,
+      title: logo.title,
+      prompt: logo.prompt,
+      directions: logo.image,
+      reactions: logo.image,
+      image: logo.image,
+      mode: "prompt",
+    })
+    queryClient.invalidateQueries({ queryKey: ["logos"] })
+    const studioEl = document.getElementById("mascot-logo-studio")
+    if (studioEl?.getClientRects().length) {
+      studioEl.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
   }
 
   function clearPhoto() {
@@ -196,7 +207,7 @@ export function Editor() {
 
   function scrollToExport() {
     const el = document.getElementById("developer-integration")
-    if (el) {
+    if (el?.getClientRects().length) {
       el.scrollIntoView({ behavior: "smooth" })
     }
   }
@@ -374,7 +385,6 @@ export function Editor() {
       {/* 1. EDGE-TO-EDGE REACTIVE SITE HEADER */}
       <SiteHeader
         studioMode={studioMode}
-        onStudioModeChange={handleStudioModeChange}
         onOpenSettings={() => setIsProviderOpen(true)}
         providerName={providerConfig?.provider}
         hasApiKey={Boolean(providerConfig?.apiKey)}
@@ -382,8 +392,7 @@ export function Editor() {
 
       {/* 2. FULL-PAGE EDGE-TO-EDGE STUDIO WORKSPACE */}
       <div className="w-full px-4 sm:px-8 lg:px-12 py-6 flex flex-col gap-10">
-        {studioMode === "interactive" ? (
-          <>
+          <div className="flex flex-col gap-10" style={{ display: studioMode === "interactive" ? undefined : "none" }}>
             {/* CENTRAL SPATIAL STUDIO HERO: STAGE + FLOATING TACTILE COMMAND DECK */}
             <section className="flex flex-col rounded-3xl border border-border/70 bg-card shadow-sm overflow-hidden">
               {/* Live Mascot 360° Stage or Animated Synthesis Chamber */}
@@ -575,10 +584,10 @@ export function Editor() {
                     </Button>
 
                     <Button
-                      type="button"
+                      nativeButton={false}
+                      render={<Link href="/mascot-logo" />}
                       variant="outline"
                       size="sm"
-                      onClick={() => handleStudioModeChange("logo")}
                       className="h-8 gap-1.5 text-xs font-medium rounded-xl border-border/80 bg-background/80"
                     >
                       <HugeiconsIcon icon={PaintBoardIcon} className="size-3.5 text-amber-500" />
@@ -626,54 +635,28 @@ export function Editor() {
                 reactions={picked.reactions}
               />
             </div>
-          </>
-        ) : (
-          <>
+          </div>
+          <div style={{ display: studioMode === "logo" ? undefined : "none" }}>
             {/* MASCOT LOGO MAKER STUDIO WORKSPACE */}
-            <div className="flex flex-col gap-8">
-              <div className="flex items-center justify-between border-b border-border/40 pb-4">
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-2">
-                    <h2 className="font-heading text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-                      Mascot Logo Maker
-                    </h2>
-                    <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-500">
-                      Export Engine
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Customize angles, emotional reactions, backgrounds, and corner radiuses. Export transparent or styled PNG logos.
-                  </p>
-                </div>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleStudioModeChange("interactive")}
-                  className="gap-1.5 text-xs font-medium rounded-xl"
-                >
-                  <HugeiconsIcon icon={ArrowRight01Icon} className="size-3.5 rotate-180" />
-                  <span>Return to Interactive Stage</span>
-                </Button>
-              </div>
-
-              {/* Logo Studio Canvas & Control Deck */}
-              <MascotLogoStudio mascot={picked} />
-
-              {/* Quick Mascot Switcher in Logo Mode */}
-              <div className="pt-4 border-t border-border/40">
-                <ExampleGallery
-                  picked={picked.id}
-                  pickedStyle={pickedStyle}
-                  onPick={applyExample}
-                  onPickStyle={applyStyle}
-                  onMakeYourOwn={makeYourOwn}
+            <div className="flex flex-col gap-10">
+              <div id="mascot-logo-studio" className="scroll-mt-6">
+                <MascotLogoStudio
+                  mascot={selectedLogo}
+                  singleImage={selectedLogoSingleImage}
+                  generatorProps={{
+                    providerConfig,
+                    onOpenSettings: () => setIsProviderOpen(true),
+                    onLogoGenerated: (logo) => handleLogoSelected(logo, false),
+                  }}
                 />
               </div>
+
+              {/* 3. SEPARATE LOGO FEED (COMMUNITY LOGOS & PRESETS) */}
+              <div className="pt-6 border-t border-border/40">
+                <LogoFeed onSelectLogo={handleLogoSelected} />
+              </div>
             </div>
-          </>
-        )}
+          </div>
       </div>
 
       {/* AI PROVIDER CONFIGURATION MODAL */}

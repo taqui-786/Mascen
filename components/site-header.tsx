@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import {
   GithubIcon,
   NpmIcon,
@@ -15,15 +16,13 @@ export type StudioMode = "interactive" | "logo"
 
 interface SiteHeaderProps {
   studioMode?: StudioMode
-  onStudioModeChange?: (mode: StudioMode) => void
   onOpenSettings?: () => void
   providerName?: string
   hasApiKey?: boolean
 }
 
 export function SiteHeader({
-  studioMode = "interactive",
-  onStudioModeChange,
+  studioMode,
   onOpenSettings,
   providerName = "openai",
   hasApiKey = false,
@@ -33,7 +32,7 @@ export function SiteHeader({
       <div className="flex h-14 w-full items-center justify-between gap-2 sm:gap-4 px-3 sm:px-8">
         {/* Brand */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <a href="/" className="flex items-center gap-2 group">
+          <Link href="/" aria-current={!studioMode ? "page" : undefined} className="flex items-center gap-2 group">
             <span
               className="size-7 sm:size-8 rounded-xl bg-[url('/mascots/taqui-directions.webp')] bg-[length:300%_300%] bg-[position:50%_50%] shadow-2xs transition-transform duration-200 group-hover:scale-105"
               aria-hidden
@@ -46,21 +45,17 @@ export function SiteHeader({
                 Studio
               </span>
             </div>
-          </a>
+          </Link>
         </div>
 
         {/* Studio Mode Switcher (Tactile Segmented Switcher) */}
-        {onStudioModeChange && (
           <nav
-            role="tablist"
             aria-label="Studio Mode"
             className="flex items-center rounded-full border border-border/60 bg-muted/60 p-1 shadow-2xs backdrop-blur-md"
           >
-            <button
-              type="button"
-              role="tab"
-              aria-selected={studioMode === "interactive"}
-              onClick={() => onStudioModeChange("interactive")}
+            <Link
+              href="/mascot-character"
+              aria-current={studioMode === "interactive" ? "page" : undefined}
               className={cn(
                 "group relative flex items-center gap-1.5 sm:gap-2 rounded-full px-3 sm:px-4 py-1.5 text-xs font-medium cursor-pointer select-none",
                 "transition-colors duration-150 active:scale-[0.96] transition-transform duration-100 ease-out",
@@ -81,13 +76,11 @@ export function SiteHeader({
               />
               <span className="hidden sm:inline">Interactive Mascot</span>
               <span className="sm:hidden">Interactive</span>
-            </button>
+            </Link>
 
-            <button
-              type="button"
-              role="tab"
-              aria-selected={studioMode === "logo"}
-              onClick={() => onStudioModeChange("logo")}
+            <Link
+              href="/mascot-logo"
+              aria-current={studioMode === "logo" ? "page" : undefined}
               className={cn(
                 "group relative flex items-center gap-1.5 sm:gap-2 rounded-full px-3 sm:px-4 py-1.5 text-xs font-medium cursor-pointer select-none",
                 "transition-colors duration-150 active:scale-[0.96] transition-transform duration-100 ease-out",
@@ -108,9 +101,8 @@ export function SiteHeader({
               />
               <span className="hidden sm:inline">Mascot Logo Maker</span>
               <span className="sm:hidden">Logo Maker</span>
-            </button>
+            </Link>
           </nav>
-        )}
 
         {/* Actions & Links */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
@@ -133,7 +125,7 @@ export function SiteHeader({
             </Button>
           )}
 
-          <div className="flex items-center gap-0.5">
+          <div className="hidden items-center gap-0.5 sm:flex">
             <Button
               variant="ghost"
               size="icon"
