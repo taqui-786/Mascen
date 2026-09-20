@@ -1,11 +1,41 @@
 "use server"
 
+import { headers } from "next/headers"
 import { desc, eq, sql } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { mascotLogos, type MascotLogo, type NewMascotLogo } from "@/lib/db/schema"
+import {
+  getClientIp,
+  rateLimiterInstance,
+  DB_LIKE_LIMIT,
+  DB_QUERY_LIMIT,
+  LOGO_GEN_LIMIT,
+} from "@/lib/security/rate-limit"
+import {
+  validateBrandName,
+  validatePrompt,
+  validateTagline,
+  validateId,
+} from "@/lib/security/sanitize"
+
+async function resolveClientIp(): Promise<string> {
+  try {
+    const headersList = await headers()
+    return getClientIp(headersList)
+  } catch {
+    return "127.0.0.1"
+  }
+}
 
 export async function getMascotLogos(): Promise<MascotLogo[]> {
   if (!db) return []
+
+  const ip = await resolveClientIp()
+  const limitCheck = rateLimiterInstance.check(ip, DB_QUERY_LIMIT)
+  if (!limitCheck.success) {
+    console.warn(`[RateLimit] getMascotLogos rate limit hit for ${ip}`)
+    return []
+  }
 
   try {
     const rows = await db
@@ -21,7 +51,14 @@ export async function getMascotLogos(): Promise<MascotLogo[]> {
 }
 
 export async function getMascotLogoById(id: string): Promise<MascotLogo | null> {
-  if (!db) return null
+  if (!db || !validateId(id)) return null
+
+  const ip = await resolveClientIp()
+  const limitCheck = rateLimiterInstance.check(ip, DB_QUERY_LIMIT)
+  if (!limitCheck.success) {
+    console.warn(`[RateLimit] getMascotLogoById rate limit hit for ${ip}`)
+    return null
+  }
 
   try {
     const rows = await db
@@ -43,10 +80,26 @@ export async function createMascotLogo(data: NewMascotLogo): Promise<MascotLogo 
     return null
   }
 
+  const ip = await resolveClientIp()
+  const limitCheck = rateLimiterInstance.check(ip, LOGO_GEN_LIMIT)
+  if (!limitCheck.success) {
+    throw new Error(`Rate limit exceeded. Please wait ${limitCheck.retryAfter}s before saving.`)
+  }
+
+  // Sanitize data before insertion
+  const sanitizedData: NewMascotLogo = {
+    ...data,
+    name: validateBrandName(data.name),
+    prompt: validatePrompt(data.prompt),
+    tagline: validateTagline(data.tagline),
+    style: data.style ? String(data.style).slice(0, 32) : "modern-3d",
+    imageUrl: String(data.imageUrl || "").slice(0, 2_000_000), // bounded size
+  }
+
   try {
     const [created] = await db
       .insert(mascotLogos)
-      .values(data)
+      .values(sanitizedData)
       .returning()
 
     return created ?? null
@@ -57,7 +110,14 @@ export async function createMascotLogo(data: NewMascotLogo): Promise<MascotLogo 
 }
 
 export async function likeMascotLogo(id: string): Promise<number | null> {
-  if (!db) return null
+  if (!db || !validateId(id)) return null
+
+  const ip = await resolveClientIp()
+  const limitCheck = rateLimiterInstance.check(ip, DB_LIKE_LIMIT)
+  if (!limitCheck.success) {
+    console.warn(`[RateLimit] likeMascotLogo limit hit for ${ip}. Retry after ${limitCheck.retryAfter}s`)
+    return null
+  }
 
   try {
     const [updated] = await db

@@ -5,6 +5,17 @@ import type { ProviderType } from "@/lib/agent/types"
 import { isR2Configured, uploadMascotToR2 } from "@/lib/storage/r2"
 import { db } from "@/lib/db"
 import { mascotLogos } from "@/lib/db/schema"
+import {
+  getClientIp,
+  getRateLimitHeaders,
+  LOGO_GEN_LIMIT,
+  rateLimiterInstance,
+} from "@/lib/security/rate-limit"
+import {
+  validateBrandName,
+  validatePrompt,
+  validateTagline,
+} from "@/lib/security/sanitize"
 
 import fs from "fs/promises"
 import path from "path"
@@ -17,6 +28,26 @@ const execFileAsync = promisify(execFile)
 export const maxDuration = 120
 
 export async function POST(req: NextRequest) {
+  const clientIp = getClientIp(req.headers)
+  const rateLimitResult = rateLimiterInstance.check(clientIp, LOGO_GEN_LIMIT)
+  const rateLimitHeaders = getRateLimitHeaders(rateLimitResult)
+
+  if (!rateLimitResult.success) {
+    return new Response(
+      JSON.stringify({
+        error: `Rate limit exceeded. Please wait ${rateLimitResult.retryAfter}s before generating again.`,
+        retryAfter: rateLimitResult.retryAfter,
+      }),
+      {
+        status: 429,
+        headers: {
+          "Content-Type": "application/json",
+          ...rateLimitHeaders,
+        },
+      }
+    )
+  }
+
   const provider = (req.headers.get("x-provider") || "openai") as ProviderType
   const apiKey = req.headers.get("x-api-key") || ""
   const baseURL = req.headers.get("x-base-url") || undefined
@@ -25,15 +56,21 @@ export async function POST(req: NextRequest) {
   if (!apiKey.trim()) {
     return new Response(
       JSON.stringify({ error: "Missing API Key. Please configure your API key in Settings." }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
+      {
+        status: 400,
+        headers: {
+          "Content-Type": "application/json",
+          ...rateLimitHeaders,
+        },
+      }
     )
   }
 
   const formData = await req.formData()
-  const prompt = (formData.get("prompt") as string) || ""
-  const brandName = (formData.get("brandName") as string) || "Brand"
-  const tagline = (formData.get("tagline") as string) || ""
-  const style = (formData.get("style") as string) || "modern-3d"
+  const prompt = validatePrompt(formData.get("prompt"))
+  const brandName = validateBrandName(formData.get("brandName"))
+  const tagline = validateTagline(formData.get("tagline"))
+  const style = (formData.get("style") as string || "modern-3d").slice(0, 32)
   const layout = "icon-only"
 
   const encoder = new TextEncoder()
@@ -174,6 +211,7 @@ export async function POST(req: NextRequest) {
       "Content-Type": "text/event-stream; charset=utf-8",
       "Cache-Control": "no-cache, no-transform",
       Connection: "keep-alive",
+      ...rateLimitHeaders,
     },
   })
 }

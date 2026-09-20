@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server"
 import type { DiscoveredModel, ProviderType } from "@/lib/agent/types"
+import {
+  getClientIp,
+  getRateLimitHeaders,
+  MODEL_DISCOVERY_LIMIT,
+  rateLimiterInstance,
+} from "@/lib/security/rate-limit"
+import { isSafePublicUrl, sanitizeText } from "@/lib/security/sanitize"
 
 export const runtime = "nodejs"
 export const maxDuration = 30
@@ -12,23 +19,37 @@ interface ModelsRequestBody {
 }
 
 export async function POST(req: Request) {
+  const clientIp = getClientIp(req.headers)
+  const rateLimitResult = rateLimiterInstance.check(clientIp, MODEL_DISCOVERY_LIMIT)
+  const rateLimitHeaders = getRateLimitHeaders(rateLimitResult)
+
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      {
+        error: `Rate limit exceeded. Please wait ${rateLimitResult.retryAfter}s before discovering models again.`,
+        retryAfter: rateLimitResult.retryAfter,
+      },
+      { status: 429, headers: rateLimitHeaders }
+    )
+  }
+
   let body: ModelsRequestBody
   try {
     body = await req.json()
   } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400, headers: rateLimitHeaders })
   }
 
   const { provider, apiKey = "", baseURL = "", customModels = [] } = body
 
   if (!provider) {
-    return NextResponse.json({ error: "Missing provider field" }, { status: 400 })
+    return NextResponse.json({ error: "Missing provider field" }, { status: 400, headers: rateLimitHeaders })
   }
 
   // 1. OPENAI
   if (provider === "openai") {
     if (!apiKey.trim()) {
-      return NextResponse.json({ error: "API key is required for OpenAI" }, { status: 400 })
+      return NextResponse.json({ error: "API key is required for OpenAI" }, { status: 400, headers: rateLimitHeaders })
     }
 
     try {
@@ -50,7 +71,7 @@ export async function POST(req: Request) {
             provider: "openai",
             isDefault: m.id === "gpt-image-2" || m.id === "dall-e-3",
           }))
-          return NextResponse.json({ models })
+          return NextResponse.json({ models }, { headers: rateLimitHeaders })
         }
       }
     } catch (e: any) {
@@ -58,20 +79,23 @@ export async function POST(req: Request) {
     }
 
     // Default fallback
-    return NextResponse.json({
-      models: [
-        { id: "gpt-image-2", name: "gpt-image-2 (Recommended, native alpha)", provider: "openai", isDefault: true },
-        { id: "gpt-image-1.5", name: "gpt-image-1.5", provider: "openai" },
-        { id: "dall-e-3", name: "dall-e-3 (High detail)", provider: "openai" },
-        { id: "dall-e-2", name: "dall-e-2", provider: "openai" },
-      ],
-    })
+    return NextResponse.json(
+      {
+        models: [
+          { id: "gpt-image-2", name: "gpt-image-2 (Recommended, native alpha)", provider: "openai", isDefault: true },
+          { id: "gpt-image-1.5", name: "gpt-image-1.5", provider: "openai" },
+          { id: "dall-e-3", name: "dall-e-3 (High detail)", provider: "openai" },
+          { id: "dall-e-2", name: "dall-e-2", provider: "openai" },
+        ],
+      },
+      { headers: rateLimitHeaders }
+    )
   }
 
   // 2. GEMINI
   if (provider === "gemini") {
     if (!apiKey.trim()) {
-      return NextResponse.json({ error: "API key is required for Gemini" }, { status: 400 })
+      return NextResponse.json({ error: "API key is required for Gemini" }, { status: 400, headers: rateLimitHeaders })
     }
 
     try {
@@ -101,7 +125,7 @@ export async function POST(req: Request) {
               isDefault: id.includes("imagen-3"),
             }
           })
-          return NextResponse.json({ models })
+          return NextResponse.json({ models }, { headers: rateLimitHeaders })
         }
       }
     } catch (e: any) {
@@ -109,19 +133,29 @@ export async function POST(req: Request) {
     }
 
     // Default fallback
-    return NextResponse.json({
-      models: [
-        { id: "imagen-3.0-generate-002", name: "imagen-3.0-generate-002 (Latest Imagen)", provider: "gemini", isDefault: true },
-        { id: "imagen-3.0-fast-generate-001", name: "imagen-3.0-fast-generate-001", provider: "gemini" },
-      ],
-    })
+    return NextResponse.json(
+      {
+        models: [
+          { id: "imagen-3.0-generate-002", name: "imagen-3.0-generate-002 (Latest Imagen)", provider: "gemini", isDefault: true },
+          { id: "imagen-3.0-fast-generate-001", name: "imagen-3.0-fast-generate-001", provider: "gemini" },
+        ],
+      },
+      { headers: rateLimitHeaders }
+    )
   }
 
   // 3. CUSTOM / OPENROUTER
   if (provider === "custom") {
     const rawUrl = (baseURL || "").trim().replace(/\/+$/, "")
     if (!rawUrl) {
-      return NextResponse.json({ error: "Please provide a Base URL for custom provider." }, { status: 400 })
+      return NextResponse.json({ error: "Please provide a Base URL for custom provider." }, { status: 400, headers: rateLimitHeaders })
+    }
+
+    if (!isSafePublicUrl(rawUrl)) {
+      return NextResponse.json(
+        { error: "Invalid or restricted Base URL. Private networks, loopback, and cloud metadata addresses are forbidden." },
+        { status: 400, headers: rateLimitHeaders }
+      )
     }
 
     const isOpenRouter = rawUrl.includes("openrouter.ai")
@@ -296,12 +330,15 @@ export async function POST(req: Request) {
       }
     }
 
-    return NextResponse.json({
-      models: finalModels,
-      count: finalModels.length,
-      warning: discovered.length === 0 && lastError ? lastError : undefined,
-    })
+    return NextResponse.json(
+      {
+        models: finalModels,
+        count: finalModels.length,
+        warning: discovered.length === 0 && lastError ? lastError : undefined,
+      },
+      { headers: rateLimitHeaders }
+    )
   }
 
-  return NextResponse.json({ error: "Unsupported provider" }, { status: 400 })
+  return NextResponse.json({ error: "Unsupported provider" }, { status: 400, headers: rateLimitHeaders })
 }

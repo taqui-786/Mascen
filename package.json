@@ -13,6 +13,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:prompts": "node --experimental-strip-types scripts/eval-logo-prompts.ts",
+    "test:security": "node --experimental-strip-types scripts/test-rate-limit.ts",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate"
   },

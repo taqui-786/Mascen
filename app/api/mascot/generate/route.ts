@@ -14,6 +14,13 @@ import type { AgentSSEEvent, ProviderType } from "@/lib/agent/types"
 import { isR2Configured, uploadMascotToR2 } from "@/lib/storage/r2"
 import { db } from "@/lib/db"
 import { mascotGenerations } from "@/lib/db/schema"
+import {
+  getClientIp,
+  getRateLimitHeaders,
+  MASCOT_GEN_LIMIT,
+  rateLimiterInstance,
+} from "@/lib/security/rate-limit"
+import { sanitizeText, validatePrompt } from "@/lib/security/sanitize"
 
 const execFileAsync = promisify(execFile)
 
@@ -31,6 +38,26 @@ const PROTECTED_SLUGS = new Set([
 ])
 
 export async function POST(req: NextRequest) {
+  const userIp = getClientIp(req.headers)
+  const rateLimitResult = rateLimiterInstance.check(userIp, MASCOT_GEN_LIMIT)
+  const rateLimitHeaders = getRateLimitHeaders(rateLimitResult)
+
+  if (!rateLimitResult.success) {
+    return new Response(
+      JSON.stringify({
+        error: `Rate limit exceeded. Please wait ${rateLimitResult.retryAfter}s before generating again.`,
+        retryAfter: rateLimitResult.retryAfter,
+      }),
+      {
+        status: 429,
+        headers: {
+          "Content-Type": "application/json",
+          ...rateLimitHeaders,
+        },
+      }
+    )
+  }
+
   const provider = (req.headers.get("x-provider") || "openai") as ProviderType
   const apiKey = req.headers.get("x-api-key") || ""
   const baseURL = req.headers.get("x-base-url") || undefined
@@ -39,16 +66,36 @@ export async function POST(req: NextRequest) {
   if (!apiKey.trim()) {
     return new Response(
       JSON.stringify({ error: "Missing API Key in x-api-key header." }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
+      {
+        status: 400,
+        headers: {
+          "Content-Type": "application/json",
+          ...rateLimitHeaders,
+        },
+      }
     )
   }
 
   const formData = await req.formData()
-  const prompt = (formData.get("prompt") as string) || ""
-  const nameInput = (formData.get("name") as string) || "mascot"
-  const style = (formData.get("style") as string) || "colour"
+  const prompt = validatePrompt(formData.get("prompt"))
+  const nameInput = sanitizeText(formData.get("name"), 40, "mascot") || "mascot"
+  const style = ((formData.get("style") as string) || "colour").slice(0, 32)
   const mode = ((formData.get("mode") as string) || "prompt") as "prompt" | "photo"
   const referenceFile = formData.get("reference") as File | null
+
+  // Restrict reference photo upload size to 10MB
+  if (referenceFile && referenceFile.size > 10 * 1024 * 1024) {
+    return new Response(
+      JSON.stringify({ error: "Reference photo must be under 10MB." }),
+      {
+        status: 400,
+        headers: {
+          "Content-Type": "application/json",
+          ...rateLimitHeaders,
+        },
+      }
+    )
+  }
 
   const rawBase = nameInput
     .toLowerCase()
@@ -73,9 +120,6 @@ export async function POST(req: NextRequest) {
   }
 
   const userAgent = req.headers.get("user-agent") || ""
-  const forwardedFor = req.headers.get("x-forwarded-for") || ""
-  const userIp = forwardedFor ? forwardedFor.split(",")[0].trim() : req.headers.get("x-real-ip") || "127.0.0.1"
-
   const encoder = new TextEncoder()
 
   const stream = new ReadableStream({
@@ -359,6 +403,7 @@ export async function POST(req: NextRequest) {
       "Content-Type": "text/event-stream; charset=utf-8",
       "Cache-Control": "no-cache, no-transform",
       Connection: "keep-alive",
+      ...rateLimitHeaders,
     },
   })
 }
