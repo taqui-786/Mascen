@@ -49,7 +49,6 @@ export function sanitizePrompt(prompt: string): string {
   let cleaned = prompt.trim()
   if (!cleaned) return "a cute chibi creature"
 
-  // If prompt describes long loose hair over shoulders, rewrite to tied-back
   if (/\b(long hair|loose hair|flowing hair|hair down)\b/i.test(cleaned)) {
     cleaned = cleaned.replace(
       /\b(long hair|loose hair|flowing hair|hair down)\b/gi,
@@ -57,7 +56,6 @@ export function sanitizePrompt(prompt: string): string {
     )
   }
 
-  // Avoid held props or wide accessories that break head-and-shoulders framing
   if (/\b(holding a staff|holding a mug|holding an instrument|holding a sword|holding a book|holding weapons?)\b/i.test(cleaned)) {
     cleaned = cleaned.replace(
       /\b(holding a staff|holding a mug|holding an instrument|holding a sword|holding a book|holding weapons?)\b/gi,

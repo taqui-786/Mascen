@@ -46,16 +46,16 @@ const BADGE_RADIUS_CSS: Record<RadiusOption, string> = {
 }
 
 const COLOR_PRESETS = [
-  "#09090b", // Zinc 950
-  "#ffffff", // Pure White
-  "#27272a", // Charcoal
-  "#1e293b", // Slate
-  "#0f766e", // Teal
-  "#2563eb", // Royal Blue
-  "#7c3aed", // Violet
-  "#e11d48", // Rose
-  "#ea580c", // Amber Orange
-  "#16a34a", // Emerald
+  "#09090b",
+  "#ffffff",
+  "#27272a",
+  "#1e293b",
+  "#0f766e",
+  "#2563eb",
+  "#7c3aed",
+  "#e11d48",
+  "#ea580c",
+  "#16a34a",
   "#f59e0b",
   "#06b6d4",
   "#db2777",
@@ -96,37 +96,31 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
   const [selectedVariant, setSelectedVariant] = useState({ col: 1, row: 1 })
   const [source, setSource] = useState(mascot.directions)
   const dragRef = useRef<{ pointerId: number; x: number; y: number; offsetX: number; offsetY: number } | null>(null)
-  // Navigation & View
   const [activeTab, setActiveTab] = useState<StudioView>("editor")
   const [stageBackdrop, setStageBackdrop] = useState<StageBackdrop>("studio")
 
-  // Transform & Alignment
   const [scale, setScale] = useState<number>(100)
   const [offsetX, setOffsetX] = useState<number>(0)
   const [offsetY, setOffsetY] = useState<number>(0)
   const [rotation, setRotation] = useState<number>(0)
   const [flipX, setFlipX] = useState<boolean>(false)
 
-  // Background & Atmosphere
   const [bgType, setBgType] = useState<BgType>("solid")
-  const [solidColor, setSolidColor] = useState<string>("#18181b")
+  const [solidColor, setSolidColor] = useState<string>("#ffffff")
   const [gradient, setGradient] = useState<string>(GRADIENT_PRESETS[0].value)
   const [showChecker, setShowChecker] = useState<boolean>(true)
   const [glowEffect, setGlowEffect] = useState<boolean>(true)
 
-  // Badge Framing & Border
   const [radius, setRadius] = useState<RadiusOption>("lg")
   const [borderWidth, setBorderWidth] = useState<number>(0)
-  const [borderColor, setBorderColor] = useState<string>("#ffffff")
+  const [borderColor, setBorderColor] = useState<string>("#e4e4e7")
 
-  // Brand Typography Lockup
   const [brandName, setBrandName] = useState<string>(mascot.title || "Brand")
   const [tagline, setTagline] = useState<string>("Modern Mascot Studio")
   const [lockupLayout, setLockupLayout] = useState<LockupLayout>("icon-only")
   const [fontChoice, setFontChoice] = useState<FontChoice>("sans")
-  const [textColor, setTextColor] = useState<string>("#ffffff")
+  const [textColor, setTextColor] = useState<string>("#09090b")
 
-  // Export Settings
   const [outputSize, setOutputSize] = useState<number>(512)
   const [exportFormat, setExportFormat] = useState<ExportFormat>("png")
   const [qualityLevel, setQualityLevel] = useState<number>(1.0)
@@ -134,11 +128,9 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
   const [copiedDataUri, setCopiedDataUri] = useState<boolean>(false)
   const [isPublishing, setIsPublishing] = useState<boolean>(false)
 
-  // Canvas Refs
   const previewCanvasRef = useRef<HTMLCanvasElement>(null)
   const [canvasDataUrl, setCanvasDataUrl] = useState<string>("")
 
-  // Query Mutation for publishing to feed
   const createLogoMutation = useCreateMascotLogo()
 
   if (source !== mascot.directions) {
@@ -169,7 +161,6 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
 
           const hasText = lockupLayout !== "icon-only" && brandName.trim().length > 0
 
-          // Badge Dimensions
           let badgeX = 0
           let badgeY = 0
           let badgeW = targetW
@@ -187,7 +178,6 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
             badgeY = (targetH - badgeH) / 2
           }
 
-          // Corner radius calculation
           let r = 0
           if (radius === "sm") r = badgeW * 0.12
           else if (radius === "md") r = badgeW * 0.22
@@ -195,7 +185,6 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
           else if (radius === "pill") r = badgeW * 0.44
           else if (radius === "full") r = badgeW / 2
 
-          // When exporting or rendering text lockup, apply badge path clipping
           if (forExport || hasText) {
             ctx.beginPath()
             if (radius === "full") {
@@ -207,7 +196,6 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
             }
           }
 
-          // 1. Render Background (if not transparent)
           if (bgType !== "transparent") {
             ctx.save()
             if (forExport || hasText) {
@@ -233,7 +221,6 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
             ctx.restore()
           }
 
-          // 2. Clip and draw Mascot Character
           ctx.save()
           ctx.beginPath()
           if (radius === "full") {
@@ -269,7 +256,6 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
           ctx.drawImage(img, sx, sy, cellW, cellH, -drawW / 2, -drawH / 2, drawW, drawH)
           ctx.restore()
 
-          // 3. Render Border (for export canvas)
           if (forExport && borderWidth > 0) {
             ctx.save()
             ctx.beginPath()
@@ -304,7 +290,6 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
             ctx.restore()
           }
 
-          // 4. Render Brand Typography Lockup (if hasText)
           if (hasText) {
             ctx.save()
             const fontStack =
@@ -375,20 +360,16 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
     ]
   )
 
-  // Sync preview canvas
   useEffect(() => {
     const canvas = previewCanvasRef.current
     if (!canvas) return
     renderLogoOnCanvas(canvas, 512, 512)?.then(() => {
       try {
         setCanvasDataUrl(canvas.toDataURL("image/png"))
-      } catch {
-        // ignore cross-origin error in local testing
-      }
+      } catch {}
     })
   }, [renderLogoOnCanvas])
 
-  // Download High-Resolution Export
   async function handleDownload() {
     setIsExporting(true)
     try {
@@ -447,7 +428,6 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
     }
   }
 
-  // Copy PNG to Clipboard
   async function handleCopyClipboard() {
     try {
       const canvas = previewCanvasRef.current
@@ -479,7 +459,6 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
     }
   }
 
-  // Publish / Save Logo to Feed (Phase 1 Database Integration)
   async function handleSaveToFeed() {
     setIsPublishing(true)
     try {
@@ -517,7 +496,6 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
 
   return (
     <div className="flex w-full flex-col gap-6">
-      {/* 1. TOP HEADER & STUDIO TABS BAR */}
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border/70 bg-card p-3 shadow-2xs">
         <div className="flex flex-col gap-1.5">
           <h1 className="font-heading text-xl font-bold tracking-tight text-foreground sm:text-2xl">Make Mascot Logo</h1>
@@ -533,7 +511,6 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
           {isGenerating ? "Creating your sheet…" : "Generate mascot logo"}
         </button>
 
-        {/* Right: Studio Mode Switcher */}
         <div className="flex items-center gap-1.5 rounded-xl border border-border/80 bg-muted/30 p-1">
           <button
             type="button"
@@ -597,9 +574,7 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
                 "bg-background bg-[linear-gradient(to_right,var(--color-border)_1px,transparent_1px),linear-gradient(to_bottom,var(--color-border)_1px,transparent_1px)] bg-[size:28px_28px]"
             )}
           >
-            {/* Quick Stage Controls Overlay (Top Right) */}
             <div className="absolute top-4 right-4 z-20 flex items-center gap-1 rounded-xl border border-border/70 bg-background/85 p-1 backdrop-blur-md shadow-xs">
-              {/* Stage Backdrop Switcher */}
               <div className="flex items-center gap-0.5 pr-1 border-r border-border/60">
                 {(
                   [
@@ -625,7 +600,6 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
                 ))}
               </div>
 
-              {/* Viewport Tools */}
               <button
                 type="button"
                 onClick={() => setFlipX(!flipX)}
@@ -675,10 +649,8 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
               </button>
             </div>
 
-            {/* THE UNIFIED LOGO BADGE (NO CONFUSING DOUBLE CARD) */}
             <div className="relative z-10 flex w-full min-w-0 flex-col items-center gap-5">
               <div className="group relative w-full max-w-80">
-                {/* Dynamic Ambient Backlight Glow */}
                 {glowEffect && bgType !== "transparent" && (
                   <div
                     className="pointer-events-none absolute -inset-4 opacity-35 blur-2xl transition-opacity duration-300 group-hover:opacity-60"
@@ -689,7 +661,6 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
                   />
                 )}
 
-                {/* The Logo Surface Itself: Matches user-selected shape exactly */}
                 <div
                   className={cn(
                     "relative transition-[transform,border-radius,box-shadow] duration-200",
@@ -736,7 +707,6 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
                 </div>
               </div>
 
-              {/* Status Pill: Clearly indicates shape, background & resolution */}
               <div className="flex items-center gap-2 rounded-full border border-border/70 bg-background/80 px-3 py-1 text-[11px] font-medium text-muted-foreground backdrop-blur-md shadow-2xs">
                 <span className="font-semibold text-foreground">
                   {radius === "full"
@@ -846,7 +816,6 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
               </div>
             </div>
 
-            {/* PANEL B: BACKGROUND ENGINE */}
             <div className="flex flex-col gap-3.5 rounded-2xl border border-border/70 bg-card p-4 shadow-2xs">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
@@ -949,14 +918,12 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
               )}
             </div>
 
-            {/* PANEL C: BADGE GEOMETRY & FRAMING */}
             <div className="flex flex-col gap-3.5 rounded-2xl border border-border/70 bg-card p-4 shadow-2xs">
               <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
                 <HugeiconsIcon icon={Settings02Icon} className="size-4 text-primary" />
                 <span>Badge Framing</span>
               </div>
 
-              {/* Corner Radius Selector */}
               <div className="flex flex-col gap-2 pt-1">
                 <span className="text-[11px] text-muted-foreground">Badge Shape:</span>
                 <div className="grid grid-cols-3 gap-1.5">
@@ -987,7 +954,6 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
                 </div>
               </div>
 
-              {/* Border Stroke Width */}
               <div className="flex flex-col gap-1.5 pt-2 border-t border-border/50">
                 <div className="flex items-center justify-between text-[11px]">
                   <span className="text-muted-foreground">Border Outline:</span>
@@ -1058,7 +1024,6 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
                 <span>Export</span>
               </div>
 
-              {/* Resolution Presets */}
               <div className="grid grid-cols-2 gap-1.5 pt-1">
                 {RESOLUTION_PRESETS.map((preset) => {
                   const isSelected = outputSize === preset.size
@@ -1090,7 +1055,6 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
                 })}
               </div>
 
-              {/* Format Options */}
               <div className="flex flex-col gap-1.5 pt-1 border-t border-border/50">
                 <span className="text-[11px] text-muted-foreground">Asset Format:</span>
                 <div className="grid grid-cols-4 gap-1">
@@ -1112,7 +1076,6 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
                 </div>
               </div>
 
-              {/* Quality Compression Level */}
               <div className="flex flex-col gap-1.5 pt-1">
                 <div className="flex items-center justify-between text-[11px]">
                   <span className="text-muted-foreground">Fidelity:</span>
@@ -1163,9 +1126,7 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
           </aside>
       </div>
       {activeTab === "mockups" ? (
-        /* 5. CONTEXT MOCKUPS PREVIEW TAB */
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {/* MOCKUP 1: iOS HOME SCREEN APP ICON */}
           <div className="flex flex-col items-center gap-4 rounded-3xl border border-border/70 bg-card p-6 shadow-xs">
             <span className="text-xs font-semibold text-foreground">Mobile App Icon Context</span>
             <div className="relative flex aspect-9/16 w-56 flex-col items-center justify-between rounded-4xl border-4 border-zinc-800 bg-linear-to-b from-zinc-900 to-black p-4 shadow-2xl">
@@ -1200,7 +1161,6 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
             </div>
           </div>
 
-          {/* MOCKUP 2: BROWSER TAB FAVICON */}
           <div className="flex flex-col items-center gap-4 rounded-3xl border border-border/70 bg-card p-6 shadow-xs">
             <span className="text-xs font-semibold text-foreground">Browser Favicon Context</span>
             <div className="flex w-full flex-col overflow-hidden rounded-xl border border-border/80 bg-muted/40 shadow-md">
@@ -1223,7 +1183,6 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
             </div>
           </div>
 
-          {/* MOCKUP 3: SOCIAL MEDIA CIRCULAR AVATAR */}
           <div className="flex flex-col items-center gap-4 rounded-3xl border border-border/70 bg-card p-6 shadow-xs">
             <span className="text-xs font-semibold text-foreground">Social Profile Avatar</span>
             <div className="flex w-full flex-col gap-3 rounded-2xl border border-border/80 bg-card p-4 shadow-md">
@@ -1248,7 +1207,6 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
           </div>
         </div>
       ) : activeTab === "code" ? (
-        /* 6. CODE & SNIPPETS TAB */
         <div className="flex flex-col gap-6 rounded-3xl border border-border/70 bg-card p-6 shadow-xs">
           <div className="flex items-center justify-between">
             <div>

@@ -63,7 +63,6 @@ export function ProviderDialog({
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [savedSuccess, setSavedSuccess] = useState(false)
 
-  // Load existing config on open
   useEffect(() => {
     if (!open) return
     getProviderConfig().then((cfg) => {
@@ -79,7 +78,6 @@ export function ProviderDialog({
           fetchModelsFor(cfg.provider, cfg.apiKey, cfg.baseURL, cfg.selectedModel, savedCustoms)
         }
       } else {
-        // Defaults
         fetchModelsFor("openai", "", "", "gpt-image-2", [])
       }
     })
@@ -142,7 +140,6 @@ export function ProviderDialog({
     if (!customModels.includes(trimmed)) {
       const updated = [trimmed, ...customModels]
       setCustomModels(updated)
-      // Add to discovered list immediately
       const newEntry: DiscoveredModel = {
         id: trimmed,
         name: `${trimmed} (Custom)`,
@@ -157,7 +154,6 @@ export function ProviderDialog({
     setCustomModelInput("")
   }
 
-  // Filtered models for search
   const filteredModels = useMemo(() => {
     if (!searchQuery.trim()) return models
     const q = searchQuery.toLowerCase()

@@ -25,7 +25,6 @@ interface LogoFeedProps {
   }) => void
 }
 
-// Built-in seed logos to guarantee a vibrant community feed on launch
 const SEED_LOGOS: Array<{
   id: string
   name: string
@@ -97,7 +96,6 @@ export function LogoFeed({ onSelectLogo }: LogoFeedProps) {
   const { data: dbLogos = [] } = useMascotLogos()
   const likeMutation = useLikeMascotLogo()
 
-  // Merge DB logos with curated seed logos
   const combinedLogos = [
     ...dbLogos.map((l) => ({
       id: l.id,

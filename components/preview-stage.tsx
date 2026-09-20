@@ -109,7 +109,6 @@ export function PreviewStage({
 }: PreviewStageProps) {
   const mascotRef = useRef<MascotHandle>(null)
 
-  // Interactive controls
   const [followPointer, setFollowPointer] = useState(true)
   const [idleBlink, setIdleBlink] = useState(false)
   const [goToSleep, setGoToSleep] = useState(false)
@@ -132,9 +131,7 @@ export function PreviewStage({
 
   return (
     <div className="grid grid-cols-1 divide-y divide-border lg:grid-cols-[minmax(0,1fr)_320px] lg:divide-x lg:divide-y-0">
-      {/* 1. LEFT/CENTER: Interactive Mascot Viewport or Generation Chamber */}
       <div className="relative flex min-h-[400px] flex-col justify-between p-4 sm:p-6 bg-muted/15 transition-colors duration-200">
-        {/* Viewport Header: Mascot Name & Status */}
         <div className="z-10 flex items-center justify-between border-b border-border/40 pb-2.5">
           <div className="flex items-center gap-2">
             <span className="font-heading text-sm font-semibold tracking-tight text-foreground">
@@ -155,10 +152,8 @@ export function PreviewStage({
           </div>
         </div>
 
-        {/* Generation Chamber State */}
         {isGenerating ? (
           <div className="my-auto flex flex-col items-center justify-center gap-6 py-8">
-            {/* Animated character pulse silhouette */}
             <div className="relative flex size-40 items-center justify-center">
               <div className="absolute inset-0 rounded-full border-2 border-dashed border-primary/30 animate-[spin_10s_linear_infinite]" />
               <div className="absolute inset-2 rounded-full border border-primary/15 animate-ping opacity-25" />
@@ -167,7 +162,6 @@ export function PreviewStage({
               </div>
             </div>
 
-            {/* Step and Progress Info */}
             <div className="flex w-full max-w-sm flex-col items-center gap-2 text-center">
               <div className="flex items-center gap-2">
                 <Spinner className="size-3.5 text-primary" />
@@ -190,7 +184,6 @@ export function PreviewStage({
             </div>
           </div>
         ) : error ? (
-          /* Inline Generation Error State */
           <div className="my-auto flex flex-col items-center justify-center gap-3 p-6 text-center">
             <div className="flex size-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
               <HugeiconsIcon icon={AlertCircleIcon} className="size-6" />
@@ -232,9 +225,7 @@ export function PreviewStage({
           </div>
         )}
 
-        {/* Viewport Footer: Highlighted Download Button & Physics Metrics */}
         <div className="z-10 flex flex-wrap items-center justify-between gap-2 border-t border-border/40 pt-3 text-xs">
-          {/* Highlighted Primary Download Button */}
           {onScrollToDownload ? (
             <button
               type="button"
@@ -252,7 +243,6 @@ export function PreviewStage({
             <div />
           )}
 
-          {/* Metrics Pill Bar */}
           {metrics && (
             <div className="flex flex-wrap items-center gap-1.5 font-mono text-[10px]">
               <Badge variant={metrics.shift <= 2 ? "outline" : "destructive"} className="text-[10px]">
@@ -269,9 +259,7 @@ export function PreviewStage({
         </div>
       </div>
 
-      {/* 2. RIGHT RAIL: Live Inspection Deck (Reactions & Glances) */}
       <div className="flex flex-col justify-between p-4 sm:p-5 gap-5 bg-card">
-        {/* Header */}
         <div className="flex items-center justify-between border-b border-border/50 pb-2.5">
           <span className="text-xs font-semibold tracking-tight text-foreground">
             Expressions & Glances
@@ -281,7 +269,6 @@ export function PreviewStage({
           </span>
         </div>
 
-        {/* Emotion Trigger Grid */}
         <div className="flex flex-col gap-2">
           <span className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
             Trigger Reaction
@@ -317,7 +304,6 @@ export function PreviewStage({
           </div>
         </div>
 
-        {/* Glance Angle Compass */}
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
@@ -350,10 +336,8 @@ export function PreviewStage({
           </div>
         </div>
 
-        {/* Behavior & Size Toggles */}
         <div className="flex flex-col gap-2 border-t border-border/40 pt-3">
           <div className="grid grid-cols-3 gap-1.5">
-            {/* Follow Pointer */}
             <button
               type="button"
               onClick={() => setFollowPointer((prev) => !prev)}
@@ -376,7 +360,6 @@ export function PreviewStage({
               />
             </button>
 
-            {/* Idle Blink */}
             <button
               type="button"
               onClick={() => setIdleBlink((prev) => !prev)}
@@ -399,7 +382,6 @@ export function PreviewStage({
               />
             </button>
 
-            {/* Sleep Mode */}
             <button
               type="button"
               onClick={() => setGoToSleep((prev) => !prev)}
@@ -423,7 +405,6 @@ export function PreviewStage({
             </button>
           </div>
 
-          {/* Size Pills */}
           <div className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/20 px-2.5 py-1">
             <span className="text-[10px] font-medium text-muted-foreground">Size</span>
             <div className="flex gap-1">

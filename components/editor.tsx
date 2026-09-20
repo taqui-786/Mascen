@@ -77,11 +77,9 @@ export function Editor() {
   const [selectedLogoSingleImage, setSelectedLogoSingleImage] = useState(false)
   const [pickedStyle, setPickedStyle] = useState<string | null>(null)
 
-  // Provider State
   const [providerConfig, setProviderConfig] = useState<StoredProviderConfig | null>(null)
   const [isProviderOpen, setIsProviderOpen] = useState(false)
 
-  // Generation State
   const [isGenerating, setIsGenerating] = useState(false)
   const [stepMessage, setStepMessage] = useState("")
   const [stepProgress, setStepProgress] = useState(0)
@@ -230,7 +228,6 @@ export function Editor() {
     }
     if (invalid) return
 
-    // Verify provider is configured
     if (!providerConfig || !providerConfig.apiKey) {
       setIsProviderOpen(true)
       toast.add({
@@ -382,7 +379,6 @@ export function Editor() {
 
   return (
     <div className="flex w-full flex-col min-h-screen">
-      {/* 1. EDGE-TO-EDGE REACTIVE SITE HEADER */}
       <SiteHeader
         studioMode={studioMode}
         onOpenSettings={() => setIsProviderOpen(true)}
@@ -390,12 +386,9 @@ export function Editor() {
         hasApiKey={Boolean(providerConfig?.apiKey)}
       />
 
-      {/* 2. FULL-PAGE EDGE-TO-EDGE STUDIO WORKSPACE */}
       <div className="w-full px-4 sm:px-8 lg:px-12 py-6 flex flex-col gap-10">
           <div className="flex flex-col gap-10" style={{ display: studioMode === "interactive" ? undefined : "none" }}>
-            {/* CENTRAL SPATIAL STUDIO HERO: STAGE + FLOATING TACTILE COMMAND DECK */}
             <section className="flex flex-col rounded-3xl border border-border/70 bg-card shadow-sm overflow-hidden">
-              {/* Live Mascot 360° Stage or Animated Synthesis Chamber */}
               <PreviewStage
                 label={label || picked.title}
                 slug={picked.id}
@@ -410,16 +403,12 @@ export function Editor() {
                 onScrollToDownload={scrollToExport}
               />
 
-              {/* DOCKED TACTILE COMMAND DECK (CENTRAL, USER-FRIENDLY, NO SIDEBAR) */}
               <form
                 onSubmit={onGenerate}
                 className="border-t border-border/70 bg-muted/20 backdrop-blur-md p-4 sm:p-6 flex flex-col gap-4"
               >
-                {/* Upper Control Bar: Mode Toggle, Style Chips, Name & Inspiration */}
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  {/* Left: Mode Switcher + Style Chips */}
                   <div className="flex flex-wrap items-center gap-3">
-                    {/* Prompt vs Photo Mode Toggle */}
                     <ToggleGroup
                       value={[mode]}
                       onValueChange={(value) => {
@@ -439,7 +428,6 @@ export function Editor() {
                       </ToggleGroupItem>
                     </ToggleGroup>
 
-                    {/* Quick Style Chips with Clear Label */}
                     <div className="flex items-center gap-1.5 rounded-xl border border-border/80 bg-background/70 px-2 py-1">
                       <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider pl-1">
                         Style
@@ -467,7 +455,6 @@ export function Editor() {
                     </div>
                   </div>
 
-                  {/* Right: Character Name & Inspiration */}
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
@@ -490,7 +477,6 @@ export function Editor() {
                   </div>
                 </div>
 
-                {/* Photo Upload Dropzone (Photo Mode) */}
                 {mode === "photo" && (
                   <div className="flex items-center gap-3 rounded-2xl border border-dashed border-primary/40 bg-primary/5 p-3">
                     <input
@@ -526,7 +512,6 @@ export function Editor() {
                   </div>
                 )}
 
-                {/* Main Prompt Textarea */}
                 <div className="flex flex-col gap-1.5">
                   <div className="relative">
                     <Textarea
@@ -564,7 +549,6 @@ export function Editor() {
                   {promptError && <span className="text-xs font-medium text-destructive">{promptError}</span>}
                 </div>
 
-                {/* Bottom Action Footer */}
                 <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
                   <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
                     <span className="size-1.5 rounded-full bg-emerald-500" />
@@ -617,7 +601,6 @@ export function Editor() {
               </form>
             </section>
 
-            {/* ALREADY DRAWN MASCOTS & ARTISTIC STYLES (TRANSPARENT FLOATING CARDS) */}
             <ExampleGallery
               picked={picked.id}
               pickedStyle={pickedStyle}
@@ -626,7 +609,6 @@ export function Editor() {
               onMakeYourOwn={makeYourOwn}
             />
 
-            {/* DEVELOPER INTEGRATION & EXPORT SUITE */}
             <div id="developer-integration">
               <MascotExport
                 label={label || picked.title}
@@ -637,7 +619,6 @@ export function Editor() {
             </div>
           </div>
           <div style={{ display: studioMode === "logo" ? undefined : "none" }}>
-            {/* MASCOT LOGO MAKER STUDIO WORKSPACE */}
             <div className="flex flex-col gap-10">
               <div id="mascot-logo-studio" className="scroll-mt-6">
                 <MascotLogoStudio
@@ -651,7 +632,6 @@ export function Editor() {
                 />
               </div>
 
-              {/* 3. SEPARATE LOGO FEED (COMMUNITY LOGOS & PRESETS) */}
               <div className="pt-6 border-t border-border/40">
                 <LogoFeed onSelectLogo={handleLogoSelected} />
               </div>
@@ -659,7 +639,6 @@ export function Editor() {
           </div>
       </div>
 
-      {/* AI PROVIDER CONFIGURATION MODAL */}
       <ProviderDialog
         open={isProviderOpen}
         onOpenChange={setIsProviderOpen}

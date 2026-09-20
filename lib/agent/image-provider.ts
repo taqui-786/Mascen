@@ -15,7 +15,6 @@ export interface GenerateImageOptions {
 export async function generateImageBuffer(opts: GenerateImageOptions): Promise<Buffer> {
   const { provider, apiKey, baseURL, model, prompt, referenceBuffer } = opts
 
-  // 1. If reference image is provided and using OpenAI or OpenAI-compatible
   if (referenceBuffer && (provider === "openai" || provider === "custom")) {
     try {
       const endpoint = baseURL
@@ -50,12 +49,9 @@ export async function generateImageBuffer(opts: GenerateImageOptions): Promise<B
           return Buffer.from(b64, "base64")
         }
       }
-    } catch {
-      // If edits endpoint fails or is unsupported on custom provider, fall back to generateImage
-    }
+    } catch {}
   }
 
-  // 2. OpenAI Official Generation
   if (provider === "openai") {
     const aiClient = createOpenAI({
       apiKey,
@@ -79,12 +75,10 @@ export async function generateImageBuffer(opts: GenerateImageOptions): Promise<B
     return Buffer.from(image.uint8Array)
   }
 
-  // 3. Custom / OpenRouter Generation
   if (provider === "custom") {
     const cleanBaseURL = (baseURL || "").trim().replace(/\/+$/, "")
     const isOpenRouter = cleanBaseURL.includes("openrouter.ai")
 
-    // Attempt 1: AI SDK generateImage (omitting proprietary providerOptions)
     try {
       const aiClient = createOpenAI({
         apiKey,
@@ -112,7 +106,6 @@ export async function generateImageBuffer(opts: GenerateImageOptions): Promise<B
       console.warn("AI SDK generateImage fallback on custom provider:", aiErr.message)
     }
 
-    // Attempt 2: Direct HTTP fetch to image generation endpoint
     const candidates = isOpenRouter
       ? ["https://openrouter.ai/api/v1/images", "https://openrouter.ai/api/v1/images/generations"]
       : cleanBaseURL.endsWith("/v1")
@@ -169,7 +162,6 @@ export async function generateImageBuffer(opts: GenerateImageOptions): Promise<B
     )
   }
 
-  // 4. Google Gemini
   if (provider === "gemini") {
     const google = createGoogleGenerativeAI({
       apiKey,

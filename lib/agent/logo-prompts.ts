@@ -40,10 +40,7 @@ export function sanitizeLogoPrompt(prompt: string): string {
   let cleaned = prompt.trim()
   if (!cleaned) return "a cute friendly mascot character"
 
-  // Remove instructions that add messy photographic backgrounds or human full-body scenes
   cleaned = cleaned.replace(/\b(in a room|in a park|photorealistic|scenery|full body running|holding large objects)\b/gi, "")
-
-  // Remove excess whitespace
   cleaned = cleaned.replace(/\s+/g, " ").trim()
 
   return cleaned
