@@ -20,8 +20,35 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mascen",
+  metadataBase: new URL("https://mascen.app"),
+  title: "Mascen — Interactive Mascots & Brand Engine",
   description: "Design a cursor-aware mascot from a prompt or a photo.",
+  icons: {
+    icon: "/mascenLogo.jpg",
+    apple: "/mascenLogo.jpg",
+  },
+  openGraph: {
+    title: "Mascen — Interactive Mascots & Brand Engine",
+    description: "Design cursor-aware interactive mascots and brand identity from a prompt or photo.",
+    url: "https://mascen.app",
+    siteName: "Mascen",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Mascen Brand Logo",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Mascen — Interactive Mascots & Brand Engine",
+    description: "Design cursor-aware interactive mascots and brand identity from a prompt or photo.",
+    images: ["/og-image.jpg"],
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

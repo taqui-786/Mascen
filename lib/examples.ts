@@ -34,6 +34,33 @@ export const TAQUI: MascotExample = {
   ...sheets("taqui"),
 }
 
+export const MASCEN_FOUNDER_LOGO: MascotExample = {
+  id: "mascen-founder",
+  title: "Mascen Founder (3D Mascot)",
+  prompt: "stylized 3D claymorphic mascot logo portrait with styled black hair, manicured beard and mustache, warm friendly eyes, in modern tech blazer with vibrant warm burnt orange (#ca3500) collar accent",
+  mode: "prompt",
+  directions: "/logos/mascen-founder-logo-sheet.png",
+  reactions: "/logos/mascen-founder-logo-sheet.png",
+  image: "/logos/mascen-founder-logo-sheet.png",
+}
+
+export const MASCEN_CURSOR_LOGO: MascotExample = {
+  id: "mascen-cursor",
+  title: "Mascen (Geometric Cursor)",
+  prompt: "sleek modern geometric brand identity combining an interactive pointer cursor with an energetic spark of motion and primary brand orange accent",
+  mode: "prompt",
+  directions: "/logos/mascen-logo-sheet.png",
+  reactions: "/logos/mascen-logo-sheet.png",
+  image: "/logos/mascen-logo-sheet.png",
+}
+
+export const MASCEN_LOGO: MascotExample = MASCEN_FOUNDER_LOGO
+
+export const LOGO_PRESETS: MascotExample[] = [
+  MASCEN_FOUNDER_LOGO,
+  MASCEN_CURSOR_LOGO,
+]
+
 export const STYLES: StyleLook[] = [
   {
     id: "colour",

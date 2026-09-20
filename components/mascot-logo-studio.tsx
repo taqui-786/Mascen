@@ -12,13 +12,15 @@ import {
   Image01Icon,
   SourceCodeIcon,
   CheckmarkCircle01Icon,
-  FavouriteIcon,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { cn } from "@/lib/utils"
-import type { MascotExample } from "@/lib/examples"
+import {
+  MASCEN_FOUNDER_LOGO,
+  MASCEN_CURSOR_LOGO,
+  type MascotExample,
+} from "@/lib/examples"
 import { toast } from "@/components/ui/toast"
-import { useCreateMascotLogo } from "@/lib/queries/logos"
 
 import { LogoGeneratorForm } from "@/components/logo-generator-form"
 
@@ -26,6 +28,14 @@ interface MascotLogoStudioProps {
   mascot: MascotExample
   singleImage?: boolean
   generatorProps: ComponentProps<typeof LogoGeneratorForm>
+  onSelectLogo?: (logo: {
+    id: string
+    title: string
+    prompt: string
+    image: string
+    style?: string
+    tagline?: string
+  }) => void
 }
 
 type BgType = "transparent" | "solid" | "gradient"
@@ -90,7 +100,12 @@ const RESOLUTION_PRESETS = [
   { label: "2048px", size: 2048, desc: "4K Master Studio Quality", tier: "4K Master" },
 ]
 
-export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }: MascotLogoStudioProps) {
+export function MascotLogoStudio({
+  mascot,
+  singleImage = false,
+  generatorProps,
+  onSelectLogo,
+}: MascotLogoStudioProps) {
   const generatorFormId = useId()
   const [isGenerating, setIsGenerating] = useState(false)
   const [selectedVariant, setSelectedVariant] = useState({ col: 1, row: 1 })
@@ -126,12 +141,9 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
   const [qualityLevel, setQualityLevel] = useState<number>(1.0)
   const [isExporting, setIsExporting] = useState<boolean>(false)
   const [copiedDataUri, setCopiedDataUri] = useState<boolean>(false)
-  const [isPublishing, setIsPublishing] = useState<boolean>(false)
 
   const previewCanvasRef = useRef<HTMLCanvasElement>(null)
   const [canvasDataUrl, setCanvasDataUrl] = useState<string>("")
-
-  const createLogoMutation = useCreateMascotLogo()
 
   if (source !== mascot.directions) {
     setSource(mascot.directions)
@@ -459,41 +471,6 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
     }
   }
 
-  async function handleSaveToFeed() {
-    setIsPublishing(true)
-    try {
-      await createLogoMutation.mutateAsync({
-        name: brandName || mascot.title,
-        prompt: mascot.prompt || `Mascot logo for ${brandName}`,
-        style: "mascot-studio",
-        imageUrl: canvasDataUrl || mascot.directions,
-        tagline,
-        layout: lockupLayout,
-        bgType,
-        bgColor: bgType === "solid" ? solidColor : gradient,
-        angleIndex: activeCoord.row * 3 + activeCoord.col,
-        sourceMascotId: mascot.id,
-        provider: "mascot-studio",
-        model: "high-res-v1",
-      })
-
-      toast.add({
-        type: "success",
-        title: "Logo Saved to Feed",
-        description: `"${brandName}" logo published to the community feed successfully!`,
-      })
-    } catch (err) {
-      console.error("Failed to save logo:", err)
-      toast.add({
-        type: "error",
-        title: "Save Failed",
-        description: "Could not save logo to database feed.",
-      })
-    } finally {
-      setIsPublishing(false)
-    }
-  }
-
   return (
     <div className="flex w-full flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border/70 bg-card p-3 shadow-2xs">
@@ -556,12 +533,12 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
         </div>
       </div>
 
-      <div className="grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(16rem,20rem)_minmax(0,1fr)]">
+      <div className="grid min-w-0 items-start gap-6 lg:grid-cols-[19rem_minmax(0,1fr)] xl:grid-cols-[21rem_minmax(0,1fr)]">
         <aside className="min-w-0" aria-label="Character description and generator options">
           <LogoGeneratorForm {...generatorProps} formId={generatorFormId} onGeneratingChange={setIsGenerating} />
         </aside>
         <div className="flex min-w-0 flex-col gap-4">
-          <div className={cn("grid min-w-0 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_17rem]", activeTab !== "editor" && "hidden")}>
+          <div className={cn("grid min-w-0 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem] 2xl:grid-cols-[minmax(0,1fr)_24rem]", activeTab !== "editor" && "hidden")}>
         <div className="flex min-w-0 flex-col gap-4">
           <div
             className={cn(
@@ -737,29 +714,112 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
             </div>
           </div>
 
-          <section aria-label={singleImage ? "Logo image" : "All 9 variants"} className="flex min-w-0 flex-col gap-3">
-            <h2 className="text-sm font-semibold text-foreground">{singleImage ? "Logo image" : "All 9 variants"}</h2>
-            <div className="flex gap-2 overflow-x-auto pb-2">
+          <section
+            aria-label={singleImage ? "Selected Logo Mark" : "9 Exploration Variants"}
+            className="flex min-w-0 flex-col gap-3.5 rounded-3xl border border-border/70 bg-card/60 p-4 sm:p-5 shadow-2xs"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/40 pb-3">
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-foreground">
+                  {singleImage ? "Selected Logo Mark" : "9 Exploration Variants"}
+                </h2>
+                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                  {singleImage ? "Single Asset" : "3×3 Grid"}
+                </span>
+              </div>
+
+              {onSelectLogo && (
+                <div className="flex items-center gap-1.5 text-xs">
+                  <span className="text-[11px] text-muted-foreground font-medium">Walkthrough:</span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onSelectLogo({
+                        id: MASCEN_FOUNDER_LOGO.id,
+                        title: MASCEN_FOUNDER_LOGO.title,
+                        prompt: MASCEN_FOUNDER_LOGO.prompt,
+                        image: MASCEN_FOUNDER_LOGO.image,
+                        style: "modern-3d",
+                      })
+                    }
+                    className={cn(
+                      "rounded-full px-2.5 py-0.5 text-[11px] font-semibold transition-all border cursor-pointer",
+                      mascot.id === "mascen-founder"
+                        ? "border-primary bg-primary/10 text-primary shadow-2xs ring-1 ring-primary/20"
+                        : "border-border/70 bg-card text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    3D Mascot
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onSelectLogo({
+                        id: MASCEN_CURSOR_LOGO.id,
+                        title: MASCEN_CURSOR_LOGO.title,
+                        prompt: MASCEN_CURSOR_LOGO.prompt,
+                        image: MASCEN_CURSOR_LOGO.image,
+                        style: "modern-3d",
+                      })
+                    }
+                    className={cn(
+                      "rounded-full px-2.5 py-0.5 text-[11px] font-semibold transition-all border cursor-pointer",
+                      mascot.id === "mascen-cursor" || mascot.id === "mascen"
+                        ? "border-primary bg-primary/10 text-primary shadow-2xs ring-1 ring-primary/20"
+                        : "border-border/70 bg-card text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    Cursor Mark
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div
+              className={cn(
+                "grid gap-2.5 sm:gap-3",
+                singleImage ? "grid-cols-1 max-w-44 mx-auto" : "grid-cols-3"
+              )}
+            >
               {Array.from({ length: singleImage ? 1 : 9 }, (_, index) => {
                 const col = index % 3
                 const row = Math.floor(index / 3)
+                const isCurrent = activeCoord.col === col && activeCoord.row === row
                 return (
                   <button
                     key={index}
                     type="button"
                     aria-label={singleImage ? "Select logo" : `Select variant ${index + 1}`}
-                    aria-pressed={activeCoord.col === col && activeCoord.row === row}
+                    aria-pressed={isCurrent}
                     onClick={() => setSelectedVariant({ col, row })}
                     className={cn(
-                      "size-16 shrink-0 rounded-xl border bg-card bg-no-repeat transition-colors",
-                      activeCoord.col === col && activeCoord.row === row ? "border-primary ring-1 ring-primary" : "border-border hover:border-primary/50"
+                      "group relative aspect-square w-full rounded-2xl border bg-card/80 p-2 flex items-center justify-center transition-all cursor-pointer overflow-hidden",
+                      isCurrent
+                        ? "border-primary ring-2 ring-primary/40 bg-primary/5 shadow-xs scale-102"
+                        : "border-border/70 hover:border-primary/50 hover:bg-muted/40 hover:scale-101"
                     )}
-                    style={{
-                      backgroundImage: `url(${JSON.stringify(activeSheet)})`,
-                      backgroundSize: singleImage ? "100% 100%" : "300% 300%",
-                      backgroundPosition: `${col * 50}% ${row * 50}%`,
-                    }}
-                  />
+                  >
+                    <div
+                      className="size-full bg-no-repeat transition-transform duration-200 group-hover:scale-105"
+                      style={{
+                        backgroundImage: `url(${JSON.stringify(activeSheet)})`,
+                        backgroundSize: singleImage ? "100% 100%" : "300% 300%",
+                        backgroundPosition: `${col * 50}% ${row * 50}%`,
+                      }}
+                    />
+                    {!singleImage && (
+                      <span
+                        className={cn(
+                          "absolute top-2 left-2 rounded-md px-1.5 py-0.5 font-mono text-[9px] font-semibold backdrop-blur-md transition-colors",
+                          isCurrent
+                            ? "bg-primary text-primary-foreground shadow-2xs"
+                            : "bg-background/80 text-muted-foreground group-hover:text-foreground"
+                        )}
+                      >
+                        V{index + 1}
+                      </span>
+                    )}
+                  </button>
                 )
               })}
             </div>
@@ -1111,15 +1171,6 @@ export function MascotLogoStudio({ mascot, singleImage = false, generatorProps }
                 >
                   <HugeiconsIcon icon={copiedDataUri ? Tick02Icon : Copy01Icon} className={cn("size-4", copiedDataUri && "text-emerald-500")} />
                   <span>{copiedDataUri ? "Copied!" : "Copy Image"}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSaveToFeed}
-                  disabled={isPublishing}
-                  className="flex items-center justify-center gap-1.5 rounded-xl border border-border/80 bg-muted/30 px-4 py-2.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/60 disabled:opacity-50"
-                >
-                  <HugeiconsIcon icon={FavouriteIcon} className="size-4 text-rose-500" />
-                  <span>{isPublishing ? "Publishing..." : "Save to Feed"}</span>
                 </button>
               </div>
             </div>

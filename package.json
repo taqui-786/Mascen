@@ -12,6 +12,7 @@
     "typecheck:package": "pnpm --filter mascot-taqui typecheck",
     "start": "next start",
     "lint": "eslint",
+    "test:prompts": "node --experimental-strip-types scripts/eval-logo-prompts.ts",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate"
   },

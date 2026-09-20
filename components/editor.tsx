@@ -28,6 +28,7 @@ import { toast } from "@/components/ui/toast"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { cn } from "@/lib/utils"
 import {
+  MASCEN_LOGO,
   STYLES,
   TAQUI,
   type ExampleMode,
@@ -73,7 +74,7 @@ export function Editor() {
   const [photoError, setPhotoError] = useState<string | null>(null)
 
   const [picked, setPicked] = useState(TAQUI)
-  const [selectedLogo, setSelectedLogo] = useState(TAQUI)
+  const [selectedLogo, setSelectedLogo] = useState(MASCEN_LOGO)
   const [selectedLogoSingleImage, setSelectedLogoSingleImage] = useState(false)
   const [pickedStyle, setPickedStyle] = useState<string | null>(null)
 
@@ -154,7 +155,7 @@ export function Editor() {
     image: string
     style?: string
     tagline?: string
-  }, singleImage = logo.style === "mascot-studio" || logo.image.startsWith("data:image/")) {
+  }, singleImage = logo.style === "mascot-studio") {
     setSelectedLogoSingleImage(singleImage)
     setSelectedLogo({
       id: logo.id,
@@ -624,6 +625,7 @@ export function Editor() {
                 <MascotLogoStudio
                   mascot={selectedLogo}
                   singleImage={selectedLogoSingleImage}
+                  onSelectLogo={handleLogoSelected}
                   generatorProps={{
                     providerConfig,
                     onOpenSettings: () => setIsProviderOpen(true),

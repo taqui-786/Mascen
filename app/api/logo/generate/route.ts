@@ -6,6 +6,14 @@ import { isR2Configured, uploadMascotToR2 } from "@/lib/storage/r2"
 import { db } from "@/lib/db"
 import { mascotLogos } from "@/lib/db/schema"
 
+import fs from "fs/promises"
+import path from "path"
+import os from "os"
+import { execFile } from "child_process"
+import { promisify } from "util"
+
+const execFileAsync = promisify(execFile)
+
 export const maxDuration = 120
 
 export async function POST(req: NextRequest) {
@@ -61,12 +69,31 @@ export async function POST(req: NextRequest) {
           prompt: masterPrompt,
         })
 
-        // 3. Storage / Asset URL Resolution
+        // 3. Storage / Asset URL Resolution with Alpha Extraction & Grid Normalization
         sendEvent("status", {
           step: "OPTIMIZING_ASSET",
-          message: "Optimizing high-resolution logo asset...",
-          progress: 80,
+          message: "Extracting transparent alpha channel and isolating 3x3 logo marks...",
+          progress: 75,
         })
+
+        let finalBuffer = imageBuffer
+        let scratchDir = ""
+        try {
+          scratchDir = await fs.mkdtemp(path.join(os.tmpdir(), "logo-build-"))
+          const rawPath = path.join(scratchDir, "raw.png")
+          const cleanPath = path.join(scratchDir, "clean.png")
+          await fs.writeFile(rawPath, imageBuffer)
+
+          const pythonScript = path.join(process.cwd(), "lib", "pipeline", "build_logo.py")
+          await execFileAsync("python3", [pythonScript, rawPath, cleanPath])
+          finalBuffer = await fs.readFile(cleanPath)
+        } catch (procErr) {
+          console.warn("Logo transparency/cleanup pipeline warning (fallback to raw):", procErr)
+        } finally {
+          if (scratchDir) {
+            await fs.rm(scratchDir, { recursive: true, force: true }).catch(() => {})
+          }
+        }
 
         let imageUrl = ""
         const timestamp = Date.now()
@@ -76,7 +103,7 @@ export async function POST(req: NextRequest) {
           try {
             const key = `logos/${slug}/${timestamp}.png`
             const uploadedUrl = await uploadMascotToR2({
-              buffer: imageBuffer,
+              buffer: finalBuffer,
               key,
               contentType: "image/png",
             })
@@ -87,7 +114,7 @@ export async function POST(req: NextRequest) {
         }
 
         if (!imageUrl) {
-          imageUrl = `data:image/png;base64,${imageBuffer.toString("base64")}`
+          imageUrl = `data:image/png;base64,${finalBuffer.toString("base64")}`
         }
 
         // 4. Save to Database Feed (Phase 1 Table)

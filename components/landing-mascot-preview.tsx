@@ -16,12 +16,6 @@ export function LandingMascotPreview() {
 
   return (
     <div className="relative flex flex-col items-center justify-center py-2 select-none">
-      {/* Ambient radial glow behind the character */}
-      <div
-        className="pointer-events-none absolute size-64 sm:size-80 rounded-full bg-primary/15 blur-3xl transition-opacity duration-500"
-        aria-hidden
-      />
-
       {/* Floating character wrapper with spring micro-physics */}
       <motion.div
         animate={

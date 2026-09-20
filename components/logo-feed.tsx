@@ -35,6 +35,24 @@ const SEED_LOGOS: Array<{
   prompt: string
 }> = [
   {
+    id: "mascen-founder",
+    name: "Mascen Founder (3D Mascot)",
+    tagline: "Primary Studio Identity",
+    style: "modern-3d",
+    imageUrl: "/logos/mascen-founder-logo-sheet.png",
+    likesCount: 412,
+    prompt: "stylized 3D claymorphic mascot logo portrait with styled black hair, manicured beard and mustache, warm friendly eyes, in modern tech blazer with vibrant warm burnt orange (#ca3500) collar accent",
+  },
+  {
+    id: "mascen-brand",
+    name: "Mascen (Geometric Cursor)",
+    tagline: "Interactive Pointer Identity",
+    style: "modern-3d",
+    imageUrl: "/logos/mascen-logo-sheet.png",
+    likesCount: 284,
+    prompt: "sleek modern geometric brand identity combining an interactive pointer cursor with an energetic spark of motion and primary brand orange accent",
+  },
+  {
     id: "brewy-owl",
     name: "Brewy",
     tagline: "Artisan Coffee Roasters",

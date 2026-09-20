@@ -32,32 +32,34 @@ export function SiteHeader({
   hasApiKey = false,
   variant = "default",
 }: SiteHeaderProps) {
+  const isLanding = variant === "landing"
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-14 sm:h-16 w-full max-w-7xl items-center justify-between gap-2 sm:gap-4 px-6 sm:px-10 lg:px-12">
+      <div
+        className={cn(
+          "flex h-14 sm:h-16 w-full items-center justify-between gap-2 sm:gap-4",
+          isLanding
+            ? "mx-auto max-w-7xl px-6 sm:px-10 lg:px-12"
+            : "px-4 sm:px-8 lg:px-12"
+        )}
+      >
         {/* Brand */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <Link href="/" aria-current={!studioMode ? "page" : undefined} className="flex items-center gap-2.5 group">
-            <div className="relative size-8 sm:size-9.5 rounded-xl overflow-hidden shadow-2xs transition-transform duration-200 group-hover:scale-105 flex items-center justify-center">
+            <div className="relative size-8 sm:size-9.5 rounded-xl overflow-hidden shadow-2xs transition-transform duration-200 group-hover:scale-105 flex items-center justify-center border border-border/40 bg-muted/20">
               <Image
-                src="/logos/mascen-contrast.png"
+                src="/mascenLogo.jpg"
                 alt="Mascen logo"
-                width={40}
-                height={40}
-                className="size-full object-contain"
+                width={48}
+                height={48}
+                className="size-full object-cover"
                 priority
               />
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-heading text-base sm:text-lg font-bold tracking-tight text-foreground">
-                Mascen
-              </span>
-              {variant !== "landing" && (
-                <span className="hidden sm:inline-block rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                  Studio
-                </span>
-              )}
-            </div>
+            <span className="font-heading text-base sm:text-lg font-bold tracking-tight text-foreground">
+              Mascen
+            </span>
           </Link>
         </div>
 
