@@ -33,6 +33,7 @@
     "drizzle-orm": "^0.45.2",
     "idb": "^8.0.3",
     "mascot-taqui": "workspace:*",
+    "motion": "^13.4.0",
     "next": "16.3.5",
     "react": "19.2.8",
     "react-dom": "19.2.8",
