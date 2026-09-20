@@ -25,8 +25,8 @@ export default function Home() {
             <p className="mt-5 max-w-md text-base leading-relaxed text-pretty text-foreground/70 sm:text-lg">
               Give your website a companion. Give your brand a face. Make both with Mascen.
             </p>
-            <Link href="#tools" className="mt-7 inline-flex min-h-11 items-center gap-3 rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground transition-[background-color,transform] duration-150 hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-foreground active:scale-[0.96] motion-reduce:transform-none motion-reduce:transition-none">
-              Find your mascot
+            <Link href="/mascot-character" className="mt-7 inline-flex min-h-11 items-center gap-3 rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground transition-[background-color,transform] duration-150 hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-foreground active:scale-[0.96] motion-reduce:transform-none motion-reduce:transition-none">
+              Make a mascot
               <HugeiconsIcon icon={ArrowRight02Icon} strokeWidth={2} className="size-4" />
             </Link>
           </div>
