@@ -1,0 +1,106 @@
+name: Publish Package
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/mascot-taqui/**'
+      - '.github/workflows/publish.yml'
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (verify build & packaging without pushing to npm)'
+        required: false
+        default: false
+        type: boolean
+      force_publish:
+        description: 'Force publish even if version check matches'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  publish:
+    name: Build & Publish to NPM
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck mascot-taqui
+        run: pnpm --filter mascot-taqui typecheck
+
+      - name: Run unit tests
+        run: pnpm --filter mascot-taqui test
+
+      - name: Build package
+        run: pnpm --filter mascot-taqui build
+
+      - name: Check version against NPM registry
+        id: version_check
+        run: |
+          LOCAL_VERSION=$(node -p "require('./packages/mascot-taqui/package.json').version")
+          echo "Local package version: $LOCAL_VERSION"
+          echo "local_version=$LOCAL_VERSION" >> "$GITHUB_OUTPUT"
+
+          if npm view mascot-taqui@"$LOCAL_VERSION" version >/dev/null 2>&1; then
+            echo "Version $LOCAL_VERSION is already published on npm."
+            echo "is_new_version=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Version $LOCAL_VERSION is new and ready to be published."
+            echo "is_new_version=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Dry Run Publish
+        if: ${{ inputs.dry_run == true }}
+        run: |
+          echo "Dry run enabled. Simulating package publish..."
+          cd packages/mascot-taqui
+          pnpm pack --dry-run
+
+      - name: Publish to NPM
+        if: ${{ inputs.dry_run != true && (steps.version_check.outputs.is_new_version == 'true' || inputs.force_publish == true || startsWith(github.ref, 'refs/tags/v')) }}
+        run: |
+          cd packages/mascot-taqui
+          pnpm publish --access public --no-git-checks --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create Git Tag and GitHub Release
+        if: ${{ inputs.dry_run != true && (steps.version_check.outputs.is_new_version == 'true' || startsWith(github.ref, 'refs/tags/v')) }}
+        run: |
+          TAG_NAME="v${{ steps.version_check.outputs.local_version }}"
+          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+            echo "Git tag $TAG_NAME already exists."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git tag -a "$TAG_NAME" -m "Release mascot-taqui $TAG_NAME"
+            git push origin "$TAG_NAME" || echo "Tag push skipped or failed."
+            gh release create "$TAG_NAME" --title "mascot-taqui $TAG_NAME" --generate-notes || echo "GitHub release creation skipped or failed."
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -4,6 +4,15 @@
   "description": "Taqui, a cursor-aware mascot. One runtime, React and web-component adapters, and a CLI that drops it into any web app.",
   "license": "MIT",
   "author": "Md Taqui Imam",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/taqui-786/mascot.git",
+    "directory": "packages/mascot-taqui"
+  },
+  "homepage": "https://github.com/taqui-786/mascot#readme",
+  "bugs": {
+    "url": "https://github.com/taqui-786/mascot/issues"
+  },
   "type": "module",
   "sideEffects": [
     "./dist/element/index.js"
@@ -84,7 +93,8 @@
     "cursor"
   ],
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   },
   "allowScripts": {
     "esbuild@0.27.7": true
