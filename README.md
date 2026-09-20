@@ -9,6 +9,7 @@
 An interactive, cursor-aware desktop and web mascot companion that breathes life into digital applications — backed by dual 3×3 sprite atlases, real-time physics, drop-in CLI components, and zero-clutter 3×3 logo generation.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![npm](https://img.shields.io/npm/v/mascot-taqui?label=mascot-taqui&color=cc3534&logo=npm)](https://www.npmjs.com/package/mascot-taqui)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-61dafb?logo=react)](https://react.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38bdf8?logo=tailwindcss)](https://tailwindcss.com/)
