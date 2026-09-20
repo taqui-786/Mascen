@@ -13,23 +13,33 @@ Sprite sheets are copied into your app’s static folder. You do not pass `direc
 ## Install
 
 ```bash
+# Add default mascot (Taqui)
 npx mascot-taqui add --nextjs
+
+# Add a built-in preset mascot (Fox, Pixel Fox, Ink, Riso, etc.)
+npx mascot-taqui add fox --nextjs
+npx mascot-taqui add fox-pixel --react
+
+# Add any custom mascot created in Mascen Studio by ID / code
+npx mascot-taqui add <mascot-id> --nextjs
 ```
 
-Omit the flag and the CLI detects Next, Vite React, Vue, Svelte, Angular, Astro, or a plain HTML page from the files in the current directory.
+Omit the framework flag and the CLI automatically detects Next.js, Vite React, Vue, Svelte, Angular, Astro, or plain HTML from the files in the current directory.
 
-What `add` does:
+### What `add [code]` does:
 
-1. Installs `mascot-taqui` (skip with `--copy-only`)
-2. Copies `taqui-directions.webp` and `taqui-reactions.webp` into `public/mascots` (or `static/`, or `src/assets/`)
-3. Writes a one-line wrapper so the rest of the app imports from your own components folder
+1. **Resolves the mascot**: Loads built-in presets offline (`taqui`, `fox`, `fox-pixel`, `fox-ink`, `fox-riso`, `fox-paper`, `fox-sketch`) or fetches custom metadata & WebP sprite sheets from Mascen Studio.
+2. **Copies assets**: Places `${slug}-directions.webp` and `${slug}-reactions.webp` directly into your framework's public asset directory (`public/mascots/`, `src/assets/`, or `static/`).
+3. **Generates pre-bound wrapper**: Writes a typed `<Mascot />` component with `label`, `directions`, and `reactions` already wired for your framework.
+4. **Installs runtime**: Adds `mascot-taqui` to your `package.json` (skip with `--copy-only`).
 
 ```bash
-npx mascot-taqui add --dry-run
-npx mascot-taqui add --force
+npx mascot-taqui add fox --dry-run
+npx mascot-taqui add fox --force
+npx mascot-taqui add fox --copy-only
 ```
 
-`npx add mascot-taqui` is not valid npm — the binary lives on this package, so the command is `npx mascot-taqui add`.
+`npx add mascot-taqui` is not valid npm — the binary lives on this package, so the command is `npx mascot-taqui add [code]`.
 
 ## Usage
 

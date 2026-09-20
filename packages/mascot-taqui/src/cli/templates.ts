@@ -1,5 +1,12 @@
 import type { Framework } from './detect'
 
+export type MascotMetadata = {
+  name: string
+  slug: string
+  directionsPath: string
+  reactionsPath: string
+}
+
 export type WritePlan = {
   assetDir: string
   files: { path: string; contents: string }[]
@@ -7,33 +14,59 @@ export type WritePlan = {
   extraNotes: string[]
 }
 
-const REACT_WRAPPER = `'use client'
+export function buildReactWrapper(mascot: MascotMetadata): string {
+  return `'use client'
 
-export { Mascot } from 'mascot-taqui/react'
-export type { MascotProps } from 'mascot-taqui/react'
+import { Mascot as BaseMascot, type MascotProps } from 'mascot-taqui/react'
+
+export function Mascot(props: MascotProps) {
+  return (
+    <BaseMascot
+      label="${mascot.name}"
+      directions="${mascot.directionsPath}"
+      reactions="${mascot.reactionsPath}"
+      {...props}
+    />
+  )
+}
+
+export type { MascotProps }
 `
+}
 
-const VUE_SFC = `<script setup lang="ts">
+export function buildVueSfc(mascot: MascotMetadata): string {
+  return `<script setup lang="ts">
 import { Mascot } from 'mascot-taqui/vue'
 </script>
 
 <template>
-  <Mascot v-bind="$attrs" />
+  <Mascot
+    label="${mascot.name}"
+    directions="${mascot.directionsPath}"
+    reactions="${mascot.reactionsPath}"
+    v-bind="$attrs"
+  />
 </template>
 `
+}
 
-const SVELTE = `<script lang="ts">
+export function buildSvelte(mascot: MascotMetadata): string {
+  return `<script lang="ts">
   import { onMount } from 'svelte'
   import 'mascot-taqui'
 
   let {
     size = 240,
-    label = 'Taqui',
+    label = '${mascot.name}',
+    directions = '${mascot.directionsPath}',
+    reactions = '${mascot.reactionsPath}',
     goToSleep = false,
     class: className = '',
   }: {
     size?: number
     label?: string
+    directions?: string
+    reactions?: string
     goToSleep?: boolean
     class?: string
   } = $props()
@@ -45,24 +78,39 @@ const SVELTE = `<script lang="ts">
   class={className}
   size={String(size)}
   label={label}
+  directions={directions}
+  reactions={reactions}
   go-to-sleep={goToSleep ? '' : undefined}
 ></mascot-taqui>
 `
+}
 
-const ASTRO = `---
+export function buildAstro(mascot: MascotMetadata): string {
+  return `---
 interface Props {
   size?: number
   label?: string
+  directions?: string
+  reactions?: string
   class?: string
   goToSleep?: boolean
 }
-const { size = 240, label = 'Taqui', class: className = '', goToSleep = false } = Astro.props
+const {
+  size = 240,
+  label = '${mascot.name}',
+  directions = '${mascot.directionsPath}',
+  reactions = '${mascot.reactionsPath}',
+  class: className = '',
+  goToSleep = false,
+} = Astro.props
 ---
 
 <mascot-taqui
   class={className}
   size={String(size)}
   label={label}
+  directions={directions}
+  reactions={reactions}
   go-to-sleep={goToSleep ? '' : undefined}
 ></mascot-taqui>
 
@@ -70,20 +118,29 @@ const { size = 240, label = 'Taqui', class: className = '', goToSleep = false } 
   import 'mascot-taqui'
 </script>
 `
+}
 
-const HTML_SNIPPET = `<script type="module">
+export function buildHtmlSnippet(mascot: MascotMetadata): string {
+  return `<script type="module">
   import 'mascot-taqui'
 </script>
-<mascot-taqui size="140" label="Taqui"></mascot-taqui>
+<mascot-taqui
+  size="140"
+  label="${mascot.name}"
+  directions="${mascot.directionsPath}"
+  reactions="${mascot.reactionsPath}"
+></mascot-taqui>
 `
+}
 
-const ANGULAR_NOTE = `import { CUSTOM_ELEMENTS_SCHEMA, Component } from '@angular/core'
+export function buildAngularNote(mascot: MascotMetadata): string {
+  return `import { CUSTOM_ELEMENTS_SCHEMA, Component } from '@angular/core'
 
 @Component({
   selector: 'app-mascot',
   standalone: true,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  template: \`<mascot-taqui size="140" label="Taqui"></mascot-taqui>\`,
+  template: \`<mascot-taqui size="140" label="${mascot.name}" directions="${mascot.directionsPath}" reactions="${mascot.reactionsPath}"></mascot-taqui>\`,
 })
 export class MascotComponent {
   constructor() {
@@ -91,8 +148,19 @@ export class MascotComponent {
   }
 }
 `
+}
 
-export function planFor(framework: Framework, rootHasAppDir: boolean, isSvelteKit: boolean): WritePlan {
+export function planFor(
+  framework: Framework,
+  rootHasAppDir: boolean,
+  isSvelteKit: boolean,
+  mascot: MascotMetadata = {
+    name: 'Taqui',
+    slug: 'taqui',
+    directionsPath: '/mascots/taqui-directions.webp',
+    reactionsPath: '/mascots/taqui-reactions.webp',
+  }
+): WritePlan {
   switch (framework) {
     case 'nextjs':
       return {
@@ -100,7 +168,7 @@ export function planFor(framework: Framework, rootHasAppDir: boolean, isSvelteKi
         files: [
           {
             path: rootHasAppDir ? 'app/components/mascot.tsx' : 'src/components/mascot.tsx',
-            contents: REACT_WRAPPER,
+            contents: buildReactWrapper(mascot),
           },
         ],
         importHint: rootHasAppDir
@@ -114,14 +182,14 @@ export function planFor(framework: Framework, rootHasAppDir: boolean, isSvelteKi
     case 'react':
       return {
         assetDir: 'public/mascots',
-        files: [{ path: 'src/components/mascot.tsx', contents: REACT_WRAPPER }],
+        files: [{ path: 'src/components/mascot.tsx', contents: buildReactWrapper(mascot) }],
         importHint: `import { Mascot } from './components/mascot'`,
         extraNotes: [],
       }
     case 'vue':
       return {
         assetDir: 'public/mascots',
-        files: [{ path: 'src/components/Mascot.vue', contents: VUE_SFC }],
+        files: [{ path: 'src/components/Mascot.vue', contents: buildVueSfc(mascot) }],
         importHint: `import Mascot from './components/Mascot.vue'`,
         extraNotes: [],
       }
@@ -131,7 +199,7 @@ export function planFor(framework: Framework, rootHasAppDir: boolean, isSvelteKi
         files: [
           {
             path: isSvelteKit ? 'src/lib/Mascot.svelte' : 'src/lib/Mascot.svelte',
-            contents: SVELTE,
+            contents: buildSvelte(mascot),
           },
         ],
         importHint: `import Mascot from '$lib/Mascot.svelte'`,
@@ -140,14 +208,14 @@ export function planFor(framework: Framework, rootHasAppDir: boolean, isSvelteKi
     case 'astro':
       return {
         assetDir: 'public/mascots',
-        files: [{ path: 'src/components/Mascot.astro', contents: ASTRO }],
+        files: [{ path: 'src/components/Mascot.astro', contents: buildAstro(mascot) }],
         importHint: `import Mascot from '../components/Mascot.astro'`,
         extraNotes: [],
       }
     case 'angular':
       return {
         assetDir: 'src/assets/mascots',
-        files: [{ path: 'src/app/mascot.component.ts', contents: ANGULAR_NOTE }],
+        files: [{ path: 'src/app/mascot.component.ts', contents: buildAngularNote(mascot) }],
         importHint: `import { MascotComponent } from './mascot.component'`,
         extraNotes: [
           'Add CUSTOM_ELEMENTS_SCHEMA to the component or NgModule that renders <mascot-taqui>.',
@@ -158,8 +226,8 @@ export function planFor(framework: Framework, rootHasAppDir: boolean, isSvelteKi
     default:
       return {
         assetDir: 'public/mascots',
-        files: [{ path: 'mascot-taqui.html', contents: HTML_SNIPPET }],
-        importHint: HTML_SNIPPET,
+        files: [{ path: 'mascot-taqui.html', contents: buildHtmlSnippet(mascot) }],
+        importHint: buildHtmlSnippet(mascot),
         extraNotes: [
           'Point the module import at your bundler or a served copy of mascot-taqui/dist/element/index.js.',
         ],

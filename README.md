@@ -73,16 +73,25 @@ The runtime positions a single element with `background-size: 300% 300%` and swi
 - **Reduced Motion Respect**: Automatically detects `prefers-reduced-motion: reduce` to skip squash physics and abrupt shifts while preserving gentle glances.
 
 ### 3. One-Command CLI Drop-in (`mascot-taqui`)
-Drop the interactive mascot into any frontend repository with a single command:
+Drop any interactive mascot into your frontend repository with a single command:
 
 ```bash
+# Add default mascot (Taqui)
 npx mascot-taqui add --nextjs
+
+# Add a built-in preset mascot (Fox, Pixel Fox, Ink, Riso, Sketch, etc.)
+npx mascot-taqui add fox --nextjs
+npx mascot-taqui add fox-pixel --react
+
+# Add any custom mascot created in Mascen Studio by ID / code
+npx mascot-taqui add <mascot-id> --nextjs
 ```
 
-What `mascot-taqui add` does automatically:
-1. Detects your framework (**Next.js**, **React**, **Vue**, **Svelte**, **Angular**, **Astro**, or **HTML**).
-2. Copies optimized `.webp` sprite sheets into your app's public assets directory.
-3. Generates a typed, zero-overhead `<Mascot />` wrapper ready to import:
+What `mascot-taqui add [code]` does automatically:
+1. **Resolves Character Metadata**: Pulls built-in offline presets or retrieves custom character sprite sheets directly from Mascen Studio.
+2. **Copies Assets**: Places `<slug>-directions.webp` and `<slug>-reactions.webp` directly into your framework's public asset directory (`public/mascots/`, `src/assets/`, or `static/`).
+3. **Detects Framework**: Automatically targets **Next.js**, **React**, **Vue**, **Svelte**, **Angular**, **Astro**, or **HTML**.
+4. **Generates Pre-bound Wrapper**: Writes a typed, zero-overhead `<Mascot />` wrapper with `label`, `directions`, and `reactions` pre-wired:
 
 ```tsx
 import { Mascot } from '@/components/mascot'
@@ -92,7 +101,7 @@ export function Hero() {
     <Mascot
       className="bg-amber-400"
       size={140}
-      label="Taqui"
+      label="Fox"
       idleBlink={true}
       followPointer={true}
     />

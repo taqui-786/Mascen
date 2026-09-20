@@ -38,12 +38,15 @@ export function MascotExport({
   const [copied, setCopied] = useState(false)
   const [copiedKey, setCopiedKey] = useState<string | null>(null)
   const [pkgRunner, setPkgRunner] = useState<"npx" | "pnpm dlx" | "bunx">("npx")
+  const [cliFramework, setCliFramework] = useState<
+    "nextjs" | "react" | "vue" | "svelte" | "angular" | "astro" | "html"
+  >("nextjs")
 
   const cleanSlug = (slug || label || "mascot")
     .toLowerCase()
     .replace(/[^a-z0-9-]/g, "-")
 
-  const cliCode = `${pkgRunner} mascot-taqui add ${cleanSlug} --nextjs`
+  const cliCode = `${pkgRunner} mascot-taqui add ${cleanSlug} --${cliFramework}`
 
   const reactCode = `import { Mascot } from "mascot-taqui/react"
 
@@ -364,25 +367,56 @@ Reactions Matrix (Col, Row):
             </button>
           </div>
 
-          {/* Package Runner Toggle (When on CLI tab) */}
+          {/* Package Runner & Framework Toggles (When on CLI tab) */}
           {tab === "cli" && (
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <span className="text-[11px]">Runner:</span>
-              {(["npx", "pnpm dlx", "bunx"] as const).map((runner) => (
-                <button
-                  key={runner}
-                  type="button"
-                  onClick={() => setPkgRunner(runner)}
-                  className={cn(
-                    "rounded-md px-2 py-0.5 font-mono text-[11px] font-medium transition-colors",
-                    pkgRunner === runner
-                      ? "bg-foreground text-background shadow-2xs"
-                      : "bg-muted text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  {runner}
-                </button>
-              ))}
+            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px]">Runner:</span>
+                {(["npx", "pnpm dlx", "bunx"] as const).map((runner) => (
+                  <button
+                    key={runner}
+                    type="button"
+                    onClick={() => setPkgRunner(runner)}
+                    className={cn(
+                      "rounded-md px-2 py-0.5 font-mono text-[11px] font-medium transition-colors",
+                      pkgRunner === runner
+                        ? "bg-foreground text-background shadow-2xs"
+                        : "bg-muted text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {runner}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-1">
+                <span className="text-[11px]">Framework:</span>
+                {(
+                  [
+                    { id: "nextjs", label: "Next.js" },
+                    { id: "react", label: "React" },
+                    { id: "vue", label: "Vue" },
+                    { id: "svelte", label: "Svelte" },
+                    { id: "astro", label: "Astro" },
+                    { id: "angular", label: "Angular" },
+                    { id: "html", label: "HTML" },
+                  ] as const
+                ).map((fw) => (
+                  <button
+                    key={fw.id}
+                    type="button"
+                    onClick={() => setCliFramework(fw.id)}
+                    className={cn(
+                      "rounded-md px-2 py-0.5 font-mono text-[11px] font-medium transition-colors",
+                      cliFramework === fw.id
+                        ? "bg-primary text-primary-foreground shadow-2xs"
+                        : "bg-muted text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {fw.label}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -406,6 +440,15 @@ Reactions Matrix (Col, Row):
             <span>{copied ? "Copied" : "Copy"}</span>
           </Button>
         </div>
+
+        {tab === "cli" && (
+          <div className="flex items-center gap-2 rounded-lg bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground">
+            <span className="font-semibold text-foreground">CLI Action:</span>
+            <span>
+              Copies <strong>{cleanSlug}</strong> direction & reaction WebP sprite sheets into your static directory, generates a pre-bound <strong>&lt;Mascot /&gt;</strong> component, and installs <code className="font-mono text-primary">mascot-taqui</code>.
+            </span>
+          </div>
+        )}
       </div>
     </div>
   )
